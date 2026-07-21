@@ -24,7 +24,16 @@ Sem verificação da conta Business, a Meta permite enviar mensagens de teste s�
 números que você mesmo cadastrar como testadores — o suficiente para validar tudo
 antes de ir pra clientes reais.
 
-## 4. Conectar o Cloudflare Pages ao repositório
+## 4. Configurar a chave do Sakana Fugu (reforço de IA na leitura)
+
+1. Se você já colou sua chave `fish_...` em algum lugar exposto (chat, print), gere
+   uma nova em https://console.sakana.ai e revogue a antiga
+2. No Railway, no serviço do **backend Node**, vá em **Variables** e adicione:
+   - `FUGU_API_KEY` → sua chave nova
+3. Não precisa mexer em `FUGU_BASE_URL` nem `FUGU_MODEL` — os valores padrão
+   (`https://api.sakana.ai/v1` e `fugu`) já funcionam
+
+## 5. Conectar o Cloudflare Pages ao repositório
 Dashboard Cloudflare → Workers & Pages → Create → Pages → **Connect to Git** →
 autorizar o GitHub → selecionar `leitor-medidores` → Root directory: `frontend`.
 

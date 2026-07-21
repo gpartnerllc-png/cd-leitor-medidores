@@ -21,6 +21,7 @@ const jwt = require('jsonwebtoken');
 const { lerMedidorDigital } = require('./ocr-digital');
 const { calcularFatura } = require('./billing');
 const { enviarFaturaWhatsApp } = require('./whatsapp');
+const { validarComFugu } = require('./fugu-validacao');
 
 const app = express();
 app.use(express.json());
@@ -104,13 +105,25 @@ app.post('/api/ler-medidor', autenticar, upload.single('foto'), async (req, res)
       return res.status(422).json(resultadoOcr);
     }
 
-    const fatura = calcularFatura(resultadoOcr.leitura, Number(leituraAnterior), tipo, { bandeira });
+    let leituraFinal = resultadoOcr.leitura;
+    let validacaoFugu = null;
+
+    // Reforço: só chama o Fugu quando o OCR local teve confiança baixa
+    if (resultadoOcr.confiancaEstimada === 'baixa') {
+      validacaoFugu = await validarComFugu(req.file.buffer, tipo, resultadoOcr.leitura);
+      if (validacaoFugu.sucesso && validacaoFugu.confianca !== 'baixa') {
+        leituraFinal = validacaoFugu.leitura;
+      }
+    }
+
+    const fatura = calcularFatura(leituraFinal, Number(leituraAnterior), tipo, { bandeira });
     if (!fatura.sucesso) {
       return res.status(422).json(fatura);
     }
 
     res.json({
       leitura: resultadoOcr,
+      validacaoFugu,
       fatura,
     });
   } catch (erro) {
