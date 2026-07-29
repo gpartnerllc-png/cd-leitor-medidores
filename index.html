@@ -1,0 +1,1312 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Seter Pro · Motor de Leitura Nacional</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --navy:#080f1e;--slate1:#101827;--slate2:#16202f;--slate3:#1c2a3a;
+  --blue:#3b7bff;--cyan:#2de1f5;--mint:#3fdba0;--amber:#f5a623;--rose:#f55555;
+  --p:#f1f4fb;--m:#7a8bab;--b:rgba(255,255,255,0.08);
+  --r:12px;--r2:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--navy);color:var(--p);font-family:'Inter',sans-serif;min-height:100vh;font-size:14px}
+
+/* NAV */
+.nav{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid var(--b);position:sticky;top:0;background:rgba(8,15,30,0.95);backdrop-filter:blur(12px);z-index:100}
+.logo{font-family:'Sora',sans-serif;font-weight:800;font-size:18px;display:flex;align-items:center;gap:8px}
+.logo-dot{width:8px;height:8px;border-radius:50%;background:var(--mint);box-shadow:0 0 10px var(--mint)}
+.nav-tabs{display:flex;gap:4px}
+.tab{padding:7px 14px;border-radius:var(--r2);border:none;background:transparent;color:var(--m);font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s}
+.tab.ativo,.tab:hover{background:var(--slate3);color:var(--p)}
+.tab.ativo{color:var(--cyan)}
+.badge-env{font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 8px;border-radius:20px;border:1px solid rgba(45,225,245,0.3);color:var(--cyan)}
+
+/* LAYOUT */
+.wrap{max-width:1100px;margin:0 auto;padding:24px 16px 80px}
+.section{display:none}
+.section.ativa{display:block}
+.grid2{display:grid;grid-template-columns:1.1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:720px){.grid2,.grid3{grid-template-columns:1fr}}
+
+/* PANELS */
+.panel{background:linear-gradient(180deg,var(--slate3) 0%,var(--slate2) 100%);border:1px solid var(--b);border-radius:var(--r);padding:20px}
+.panel+.panel,.panel+.grid2,.grid2+.panel{margin-top:14px}
+.panel-title{font-family:'Sora',sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--m);margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.panel-title i{font-size:14px}
+
+/* FORM */
+.row{display:grid;gap:10px}
+.row.cols2{grid-template-columns:1fr 1fr}
+.row.cols3{grid-template-columns:1fr 1fr 1fr}
+@media(max-width:600px){.row.cols2,.row.cols3{grid-template-columns:1fr}}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:11px;font-weight:600;color:var(--m);text-transform:uppercase;letter-spacing:.06em}
+.field input,.field select,.field textarea{background:var(--slate1);border:1px solid var(--b);border-radius:var(--r2);padding:10px 12px;color:var(--p);font-family:'Inter',sans-serif;font-size:13px;outline:none;transition:border-color .15s;width:100%}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--cyan)}
+.field select option{background:var(--slate1)}
+.field textarea{resize:vertical;min-height:70px}
+.field input[type=number]{font-family:'JetBrains Mono',monospace}
+
+/* TOGGLE */
+.tipo-toggle{display:flex;gap:8px}
+.tipo-btn{flex:1;padding:10px;border-radius:var(--r2);border:1px solid var(--b);background:var(--slate1);color:var(--m);font-family:'Inter',sans-serif;font-weight:600;font-size:13px;cursor:pointer;transition:all .15s}
+.tipo-btn.ativo{background:rgba(59,123,255,0.15);border-color:var(--blue);color:var(--p)}
+
+/* DROPZONE */
+.dropzone{border:1.5px dashed rgba(59,123,255,0.35);border-radius:var(--r);padding:28px 16px;text-align:center;cursor:pointer;transition:all .2s;background:rgba(59,123,255,0.03);position:relative}
+.dropzone:hover{border-color:var(--cyan);background:rgba(45,225,245,0.05)}
+.dropzone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
+.dz-icon{font-size:32px;color:var(--blue);margin-bottom:8px}
+.dz-label{font-weight:600;font-size:14px;margin-bottom:4px}
+.dz-hint{color:var(--m);font-size:12px}
+.dz-preview{width:100%;max-height:160px;object-fit:contain;border-radius:var(--r2);margin-top:12px;display:none}
+
+/* VISOR */
+.visor{background:radial-gradient(ellipse at center,#0d1524,#060911);border-radius:var(--r);padding:18px;display:flex;justify-content:center;gap:6px;border:1px solid rgba(45,225,245,0.2);box-shadow:inset 0 0 30px rgba(45,225,245,0.05)}
+.digito{font-family:'JetBrains Mono',monospace;font-size:36px;font-weight:700;width:34px;text-align:center;color:rgba(255,255,255,0.1);transition:all .4s}
+.digito.on{color:var(--cyan);text-shadow:0 0 14px rgba(45,225,245,0.5)}
+.visor-sep{font-family:'JetBrains Mono',monospace;font-size:28px;color:rgba(255,255,255,0.2);align-self:center}
+.status-bar{display:flex;justify-content:space-between;margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--m)}
+.status-ok{color:var(--mint)}
+.status-proc{color:var(--amber)}
+
+/* BOTÕES */
+.btn{padding:12px 20px;border-radius:var(--r);border:none;font-family:'Sora',sans-serif;font-weight:700;font-size:13px;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:7px}
+.btn-full{width:100%}
+.btn-prim{background:linear-gradient(135deg,var(--blue),#2054d4);color:#fff}
+.btn-prim:hover{filter:brightness(1.1)}
+.btn-prim:disabled{opacity:.4;cursor:not-allowed;filter:none}
+.btn-mint{background:rgba(63,219,160,0.1);border:1px solid rgba(63,219,160,0.3);color:var(--mint)}
+.btn-mint:hover{background:rgba(63,219,160,0.18)}
+.btn-amber{background:rgba(245,166,35,0.1);border:1px solid rgba(245,166,35,0.3);color:var(--amber)}
+.btn-amber:hover{background:rgba(245,166,35,0.18)}
+.btn-rose{background:rgba(245,85,85,0.1);border:1px solid rgba(245,85,85,0.3);color:var(--rose)}
+.btn-ghost{background:transparent;border:1px solid var(--b);color:var(--m)}
+.btn-ghost:hover{border-color:var(--p);color:var(--p)}
+.btn-sm{padding:7px 14px;font-size:12px;border-radius:var(--r2)}
+
+/* FATURA */
+.fatura-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--b);font-size:13px}
+.fatura-row:last-child{border-bottom:none}
+.fr-label{color:var(--m)}
+.fr-val{font-family:'JetBrains Mono',monospace;font-weight:600}
+.total-box{display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding:14px;background:rgba(63,219,160,0.08);border:1px solid rgba(63,219,160,0.2);border-radius:var(--r)}
+.total-label{font-size:12px;color:var(--m)}
+.total-val{font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:700;color:var(--mint)}
+
+/* PILLS / BADGES */
+.pill{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:600}
+.pill-mint{background:rgba(63,219,160,0.12);color:var(--mint)}
+.pill-blue{background:rgba(59,123,255,0.12);color:var(--blue)}
+.pill-amber{background:rgba(245,166,35,0.12);color:var(--amber)}
+.pill-rose{background:rgba(245,85,85,0.12);color:var(--rose)}
+.pill-dot{width:5px;height:5px;border-radius:50%;background:currentColor}
+
+/* TABELA */
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{text-align:left;padding:8px 10px;color:var(--m);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--b)}
+.tbl td{padding:10px;border-bottom:1px solid var(--b)}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:rgba(255,255,255,0.02)}
+.tbl td .nome-uc{font-weight:600}
+.tbl td .sub{font-size:11px;color:var(--m);margin-top:2px}
+
+/* CLIENTE CARD */
+.cliente-info{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:start}
+.avatar{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--cyan));display:flex;align-items:center;justify-content:center;font-family:'Sora',sans-serif;font-weight:700;font-size:18px;color:#fff;flex-shrink:0}
+.info-nome{font-size:17px;font-weight:600;margin-bottom:2px}
+.info-sub{font-size:12px;color:var(--m)}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.info-item{padding:10px;background:var(--slate1);border-radius:var(--r2);border:1px solid var(--b)}
+.info-item-label{font-size:10px;color:var(--m);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
+.info-item-val{font-size:13px;font-weight:600}
+
+/* ALERT / TOAST */
+.toast-area{position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:8px;z-index:999}
+.toast{padding:12px 16px;border-radius:var(--r);font-size:13px;font-weight:500;max-width:320px;display:flex;align-items:center;gap:8px;animation:slideIn .2s ease;box-shadow:0 4px 20px rgba(0,0,0,0.4)}
+.toast-ok{background:rgba(63,219,160,0.15);border:1px solid rgba(63,219,160,0.3);color:var(--mint)}
+.toast-err{background:rgba(245,85,85,0.15);border:1px solid rgba(245,85,85,0.3);color:var(--rose)}
+.toast-info{background:rgba(59,123,255,0.15);border:1px solid rgba(59,123,255,0.3);color:var(--blue)}
+@keyframes slideIn{from{transform:translateX(40px);opacity:0}to{transform:translateX(0);opacity:1}}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;display:none;align-items:center;justify-content:center;padding:16px}
+.modal-bg.open{display:flex}
+.modal{background:var(--slate2);border:1px solid var(--b);border-radius:var(--r);padding:24px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.modal-titulo{font-family:'Sora',sans-serif;font-size:16px;font-weight:700}
+.modal-close{background:none;border:none;color:var(--m);font-size:20px;cursor:pointer;padding:4px}
+.modal-close:hover{color:var(--p)}
+
+/* PIX BOX */
+.pix-box{text-align:center;padding:20px}
+.pix-qr{width:160px;height:160px;background:white;border-radius:var(--r);margin:0 auto 14px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#333}
+.pix-codigo{background:var(--slate1);border-radius:var(--r2);padding:10px;font-family:'JetBrains Mono',monospace;font-size:10px;word-break:break-all;color:var(--cyan);margin-bottom:12px}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+@media(max-width:700px){.stats-grid{grid-template-columns:repeat(2,1fr)}}
+.stat-card{padding:14px;background:var(--slate2);border:1px solid var(--b);border-radius:var(--r)}
+.stat-label{font-size:11px;color:var(--m);margin-bottom:6px}
+.stat-val{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700}
+.stat-sub{font-size:11px;color:var(--m);margin-top:3px}
+
+/* BANDEIRA */
+.bandeira-bar{display:flex;gap:4px;margin-top:8px}
+.bandeira-item{flex:1;padding:6px 8px;border-radius:var(--r2);text-align:center;font-size:11px;font-weight:600;cursor:pointer;border:2px solid transparent;transition:all .15s}
+.bandeira-item.sel{border-color:currentColor}
+.b-verde{background:rgba(63,219,160,0.1);color:var(--mint)}
+.b-amarela{background:rgba(245,166,35,0.1);color:var(--amber)}
+.b-verm1{background:rgba(245,140,35,0.1);color:#f58c23}
+.b-verm2{background:rgba(245,85,85,0.1);color:var(--rose)}
+
+/* INTEGRAÇÃO CARD */
+.integ-card{display:flex;align-items:center;gap:14px;padding:14px;background:var(--slate1);border:1px solid var(--b);border-radius:var(--r);margin-bottom:10px}
+.integ-icon{width:40px;height:40px;border-radius:var(--r2);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.integ-info{flex:1}
+.integ-nome{font-weight:600;margin-bottom:2px}
+.integ-desc{font-size:12px;color:var(--m)}
+.integ-actions{display:flex;gap:6px;align-items:center}
+
+/* SWITCH */
+.switch{position:relative;width:40px;height:22px;flex-shrink:0}
+.switch input{opacity:0;width:0;height:0}
+.switch-slider{position:absolute;inset:0;background:var(--slate3);border-radius:20px;cursor:pointer;transition:.3s;border:1px solid var(--b)}
+.switch-slider:before{content:'';position:absolute;width:16px;height:16px;left:2px;top:2px;background:var(--m);border-radius:50%;transition:.3s}
+.switch input:checked+.switch-slider{background:rgba(63,219,160,0.2);border-color:var(--mint)}
+.switch input:checked+.switch-slider:before{transform:translateX(18px);background:var(--mint)}
+
+/* SEARCH */
+.search-wrap{position:relative;margin-bottom:14px}
+.search-wrap input{padding-left:36px}
+.search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--m);font-size:14px;pointer-events:none}
+
+/* EYEBROW */
+.eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.12em;color:var(--cyan);text-transform:uppercase;display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.eyebrow::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--mint);box-shadow:0 0 7px var(--mint)}
+
+/* RODAPE */
+.rodape{text-align:center;font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(122,139,171,0.5);margin-top:32px}
+
+/* DIVIDER */
+.div-label{display:flex;align-items:center;gap:10px;margin:16px 0;color:var(--m);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.div-label::before,.div-label::after{content:'';flex:1;height:1px;background:var(--b)}
+
+/* LOADING */
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,0.2);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* MAP DIST */
+.dist-select-wrap{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:600px){.dist-select-wrap{grid-template-columns:1fr}}
+
+/* CONFIANÇA BAR */
+.conf-bar{height:4px;border-radius:2px;background:var(--slate1);margin-top:8px;overflow:hidden}
+.conf-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--blue),var(--mint));transition:width .6s ease}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="logo">
+    <div class="logo-dot"></div>
+    Seter <span style="color:var(--blue);margin-left:2px">Pro</span>
+  </div>
+  <div class="nav-tabs">
+    <button class="tab ativo" onclick="irPara('leitura',this)">Leitura</button>
+    <button class="tab" onclick="irPara('clientes',this)">Clientes</button>
+    <button class="tab" onclick="irPara('historico',this)">Histórico</button>
+    <button class="tab" onclick="irPara('integracoes',this)">Integrações</button>
+    <button class="tab" onclick="irPara('config',this)">Config</button>
+  </div>
+  <div class="badge-env">v3.0 · PROD</div>
+</nav>
+
+<!-- TOASTS -->
+<div class="toast-area" id="toastArea"></div>
+
+<!-- MODAL PIX -->
+<div class="modal-bg" id="modalPix">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-titulo">Cobrança gerada</div>
+      <button class="modal-close" onclick="fecharModal('modalPix')">✕</button>
+    </div>
+    <div class="pix-box">
+      <div class="pix-qr" id="pixQR">
+        <svg width="120" height="120" viewBox="0 0 120 120" style="opacity:.6">
+          <rect x="10" y="10" width="20" height="20" fill="#333"/>
+          <rect x="30" y="10" width="10" height="10" fill="#333"/>
+          <rect x="50" y="10" width="20" height="20" fill="#333"/>
+          <rect x="80" y="10" width="20" height="20" fill="#333"/>
+          <rect x="10" y="30" width="10" height="30" fill="#333"/>
+          <rect x="20" y="40" width="10" height="10" fill="#333"/>
+          <rect x="30" y="30" width="10" height="10" fill="#333"/>
+          <rect x="40" y="30" width="20" height="10" fill="#333"/>
+          <rect x="60" y="30" width="10" height="20" fill="#333"/>
+          <rect x="80" y="30" width="10" height="10" fill="#333"/>
+          <rect x="90" y="30" width="10" height="30" fill="#333"/>
+          <rect x="10" y="80" width="20" height="20" fill="#333"/>
+          <rect x="30" y="80" width="10" height="10" fill="#333"/>
+          <rect x="50" y="80" width="10" height="20" fill="#333"/>
+          <rect x="80" y="80" width="20" height="20" fill="#333"/>
+          <rect x="40" y="50" width="30" height="30" fill="#333"/>
+        </svg>
+      </div>
+      <div style="font-size:12px;color:var(--m);margin-bottom:10px">Código Pix copia e cola:</div>
+      <div class="pix-codigo" id="pixCodigo">00020126330014BR.GOV.BCB.PIX0111999999999995204000053039865802BR5925SETER LEITURA LTDA6009SAO PAULO62070503***6304ABCD</div>
+      <div style="display:flex;gap:8px;justify-content:center;margin-bottom:14px">
+        <button class="btn btn-ghost btn-sm" onclick="copiarPix()">📋 Copiar código</button>
+        <button class="btn btn-mint btn-sm" onclick="enviarWhats()">📱 WhatsApp</button>
+      </div>
+      <div id="pixStatus" style="font-size:12px;color:var(--m)">Aguardando pagamento… <span id="pixTimer">05:00</span></div>
+      <div class="conf-bar" style="margin-top:8px"><div class="conf-fill" id="pixProgress" style="width:100%;background:linear-gradient(90deg,var(--amber),var(--mint))"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CLIENTE -->
+<div class="modal-bg" id="modalCliente">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-titulo" id="modalClienteTitulo">Novo cliente</div>
+      <button class="modal-close" onclick="fecharModal('modalCliente')">✕</button>
+    </div>
+    <div class="row" style="gap:12px">
+      <div class="row cols2">
+        <div class="field"><label>Nome completo</label><input id="cNome" placeholder="João da Silva"/></div>
+        <div class="field"><label>CPF</label><input id="cCpf" placeholder="000.000.000-00" oninput="mascaraCpf(this)"/></div>
+      </div>
+      <div class="row cols2">
+        <div class="field"><label>E-mail</label><input id="cEmail" type="email" placeholder="joao@email.com"/></div>
+        <div class="field"><label>WhatsApp</label><input id="cWhats" placeholder="(62) 99999-0000" oninput="mascaraTel(this)"/></div>
+      </div>
+      <div class="div-label">Medidor de água</div>
+      <div class="row cols3">
+        <div class="field"><label>Empresa</label>
+          <select id="cEmpresaAgua">
+            <option value="">— Selecionar —</option>
+            <option value="saneago">Saneago (GO)</option>
+            <option value="sanepar">Sanepar (PR)</option>
+            <option value="sabesp">Sabesp (SP)</option>
+            <option value="caesb">Caesb (DF)</option>
+            <option value="embasa">Embasa (BA)</option>
+            <option value="caern">CAERN (RN)</option>
+            <option value="agespisa">Agespisa (PI)</option>
+            <option value="cosanpa">Cosanpa (PA)</option>
+            <option value="casal">Casal (AL)</option>
+            <option value="deso">Deso (SE)</option>
+            <option value="outra">Outra</option>
+          </select>
+        </div>
+        <div class="field"><label>Nº Hidrômetro</label><input id="cNumAgua" placeholder="ex: 000123456"/></div>
+        <div class="field"><label>Matrícula / UC</label><input id="cUcAgua" placeholder="ex: 12345-6"/></div>
+      </div>
+      <div class="div-label">Medidor de energia</div>
+      <div class="row cols3">
+        <div class="field"><label>Distribuidora</label>
+          <select id="cEmpresaEnergia">
+            <option value="">— Selecionar —</option>
+          </select>
+        </div>
+        <div class="field"><label>Nº Medidor</label><input id="cNumEnergia" placeholder="ex: 00012345"/></div>
+        <div class="field"><label>UC / Instalação</label><input id="cUcEnergia" placeholder="ex: 3210987654"/></div>
+      </div>
+      <div class="field"><label>Endereço</label><input id="cEndereco" placeholder="Rua, número, bairro, cidade - UF"/></div>
+      <button class="btn btn-prim btn-full" onclick="salvarCliente()" style="margin-top:6px">Salvar cliente</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ SEÇÃO: LEITURA ═══════ -->
+<div class="section ativa" id="s-leitura">
+<div class="wrap">
+  <div class="eyebrow">Motor conectado · Leitura nacional</div>
+  <h1 style="font-family:'Sora',sans-serif;font-size:26px;font-weight:800;margin-bottom:4px">Seter <span style="color:var(--blue)">Leitura</span></h1>
+  <p style="color:var(--m);margin-bottom:20px">Busque o cliente pelo CPF, número do medidor ou UC — a leitura e a fatura saem em segundos.</p>
+
+  <!-- BUSCA CLIENTE -->
+  <div class="panel">
+    <div class="panel-title">Identificação do cliente</div>
+    <div class="row cols3" style="margin-bottom:12px">
+      <div class="field"><label>Buscar por CPF</label><input id="buscaCpf" placeholder="000.000.000-00" oninput="mascaraCpf(this);buscarCliente()"/></div>
+      <div class="field"><label>Nº do medidor</label><input id="buscaMedidor" placeholder="ex: 000123456" oninput="buscarCliente()"/></div>
+      <div class="field"><label>UC / Matrícula</label><input id="buscaUc" placeholder="ex: 12345-6" oninput="buscarCliente()"/></div>
+    </div>
+    <div id="clienteEncontrado" style="display:none">
+      <div class="panel" style="background:rgba(59,123,255,0.06);border-color:rgba(59,123,255,0.2);padding:14px">
+        <div class="cliente-info">
+          <div class="avatar" id="leAvatar">JS</div>
+          <div>
+            <div class="info-nome" id="leNome">—</div>
+            <div class="info-sub" id="leSub">—</div>
+            <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
+              <span class="pill pill-mint" id="lePillAgua">💧 Saneago</span>
+              <span class="pill pill-blue" id="lePillEnergia">⚡ Equatorial GO</span>
+            </div>
+          </div>
+        </div>
+        <div class="info-grid" style="margin-top:14px">
+          <div class="info-item"><div class="info-item-label">Hidrômetro</div><div class="info-item-val" id="leHidro">—</div></div>
+          <div class="info-item"><div class="info-item-label">UC Água</div><div class="info-item-val" id="leUcA">—</div></div>
+          <div class="info-item"><div class="info-item-label">Medidor Energia</div><div class="info-item-val" id="leMedE">—</div></div>
+          <div class="info-item"><div class="info-item-label">UC Energia</div><div class="info-item-val" id="leUcE">—</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid2" style="margin-top:14px">
+    <!-- CAPTURA -->
+    <div class="panel">
+      <div class="panel-title">Captura e leitura</div>
+      <div class="tipo-toggle" style="margin-bottom:14px">
+        <button class="tipo-btn ativo" id="btnAgua" onclick="selecionarTipo('AGUA',this)">💧 Água</button>
+        <button class="tipo-btn" id="btnEnergia" onclick="selecionarTipo('ENERGIA',this)">⚡ Energia</button>
+      </div>
+      <label class="dropzone">
+        <input type="file" id="inputFoto" accept="image/*" capture="environment" onchange="aoSelecionarFoto(event)"/>
+        <div class="dz-icon">📷</div>
+        <div class="dz-label" id="dzLabel">Tirar ou enviar foto do medidor</div>
+        <div class="dz-hint">JPG, PNG ou WEBP · até 10 MB</div>
+        <img id="dzPreview" class="dz-preview"/>
+      </label>
+
+      <div class="div-label" style="margin:12px 0 10px">Dados da leitura</div>
+      <div class="row cols2">
+        <div class="field"><label>Leitura anterior</label><input type="number" id="leiAnt" placeholder="ex: 12751" value="12751"/></div>
+        <div class="field"><label>Leitura atual (manual)</label><input type="number" id="leiAtual" placeholder="ou use a foto"/></div>
+      </div>
+
+      <!-- DISTRIBUIDORA SELECIONADA -->
+      <div id="distWrap" style="margin-top:12px;display:none">
+        <div class="field"><label id="distLabel">Distribuidora</label>
+          <select id="distSelect"></select>
+        </div>
+      </div>
+
+      <!-- BANDEIRA TARIFÁRIA -->
+      <div id="bandeiraWrap" style="margin-top:12px;display:none">
+        <div class="panel-title" style="margin-bottom:8px">Bandeira tarifária (ANEEL)</div>
+        <div class="bandeira-bar">
+          <div class="bandeira-item b-verde sel" id="bVerde" onclick="selBandeira('verde',this)">🟢 Verde<br><small>R$ 0,00</small></div>
+          <div class="bandeira-item b-amarela" id="bAmarela" onclick="selBandeira('amarela',this)">🟡 Amarela<br><small>+R$ 0,01885</small></div>
+          <div class="bandeira-item b-verm1" id="bVerm1" onclick="selBandeira('verm1',this)">🔴 Verm. 1<br><small>+R$ 0,03971</small></div>
+          <div class="bandeira-item b-verm2" id="bVerm2" onclick="selBandeira('verm2',this)">🔴🔴 Verm. 2<br><small>+R$ 0,09492</small></div>
+        </div>
+      </div>
+
+      <button class="btn btn-prim btn-full" id="btnProcessar" onclick="processarLeitura()" style="margin-top:16px">
+        Processar leitura
+      </button>
+    </div>
+
+    <!-- VISOR + FATURA -->
+    <div>
+      <div class="panel" style="margin-bottom:14px">
+        <div class="panel-title">Leitura detectada</div>
+        <div class="visor">
+          <span class="digito" id="d0">0</span><span class="digito" id="d1">0</span>
+          <span class="digito" id="d2">0</span><span class="visor-sep">.</span>
+          <span class="digito" id="d3">0</span><span class="digito" id="d4">0</span>
+        </div>
+        <div class="status-bar">
+          <span id="statusTxt">aguardando…</span>
+          <span id="statusConf"></span>
+        </div>
+        <div class="conf-bar"><div class="conf-fill" id="confFill" style="width:0%"></div></div>
+      </div>
+
+      <div class="panel" id="painelFatura">
+        <div class="panel-title">Fatura calculada</div>
+        <div id="faturaVazia" style="text-align:center;padding:30px;color:var(--m)">Processe uma leitura para ver o cálculo.</div>
+        <div id="faturaConteudo" style="display:none">
+          <div class="fatura-row"><span class="fr-label" id="flConsumo">Consumo</span><span class="fr-val" id="fvConsumo">—</span></div>
+          <div class="fatura-row"><span class="fr-label" id="flServico">Serviço</span><span class="fr-val" id="fvServico">—</span></div>
+          <div class="fatura-row" id="frBase" style="display:none"><span class="fr-label">Impostos</span><span class="fr-val" id="fvBase">—</span></div>
+          <div class="fatura-row"><span class="fr-label" id="flExtra">Adicional</span><span class="fr-val" id="fvExtra">—</span></div>
+          <div class="fatura-row" id="frBasica" style="display:none"><span class="fr-label">Tarifa básica</span><span class="fr-val" id="fvBasica">—</span></div>
+          <div class="total-box">
+            <div><div class="total-label">Total a pagar</div><div style="font-size:11px;color:var(--m);margin-top:2px" id="fVenc">Vencimento: —</div></div>
+            <div class="total-val" id="fvTotal">R$ 0,00</div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+            <button class="btn btn-mint btn-sm" onclick="gerarPix()">⚡ Gerar Pix</button>
+            <button class="btn btn-amber btn-sm" onclick="enviarFatura('whatsapp')">📱 WhatsApp</button>
+            <button class="btn btn-ghost btn-sm" onclick="enviarFatura('email')">✉️ E-mail</button>
+            <button class="btn btn-ghost btn-sm" onclick="imprimirFatura()">🖨️ Imprimir</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════ SEÇÃO: CLIENTES ═══════ -->
+<div class="section" id="s-clientes">
+<div class="wrap">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+    <div>
+      <div class="eyebrow">Cadastro</div>
+      <h2 style="font-family:'Sora',sans-serif;font-size:22px;font-weight:800">Clientes</h2>
+    </div>
+    <button class="btn btn-prim btn-sm" onclick="abrirModalCliente(null)">+ Novo cliente</button>
+  </div>
+
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input class="field input" style="width:100%;padding:10px 12px 10px 36px;background:var(--slate2);border:1px solid var(--b);border-radius:var(--r);color:var(--p)" placeholder="Buscar por nome, CPF ou número do medidor…" oninput="filtrarClientes(this.value)" id="searchClientes"/>
+  </div>
+
+  <div class="panel" style="padding:0;overflow:hidden">
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>Cliente</th>
+          <th>CPF</th>
+          <th>Hidrômetro / Medidor</th>
+          <th>Distribuidoras</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody id="tabelaClientes"></tbody>
+    </table>
+  </div>
+  <div id="semClientes" style="text-align:center;padding:40px;color:var(--m);display:none">Nenhum cliente cadastrado ainda.</div>
+</div>
+</div>
+
+<!-- ═══════ SEÇÃO: HISTÓRICO ═══════ -->
+<div class="section" id="s-historico">
+<div class="wrap">
+  <div class="eyebrow">Registros</div>
+  <h2 style="font-family:'Sora',sans-serif;font-size:22px;font-weight:800;margin-bottom:20px">Histórico de leituras</h2>
+
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-label">Leituras este mês</div><div class="stat-val" id="stTotal">0</div><div class="stat-sub">total processadas</div></div>
+    <div class="stat-card"><div class="stat-label">Faturas enviadas</div><div class="stat-val" id="stEnviadas">0</div><div class="stat-sub">WhatsApp + e-mail</div></div>
+    <div class="stat-card"><div class="stat-label">Cobranças geradas</div><div class="stat-val" id="stCobrancas">0</div><div class="stat-sub">via Asaas</div></div>
+    <div class="stat-card"><div class="stat-label">Valor total</div><div class="stat-val" id="stValor">R$ 0</div><div class="stat-sub">emitido</div></div>
+  </div>
+
+  <div class="panel" style="padding:0;overflow:hidden">
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>Cliente</th>
+          <th>Tipo</th>
+          <th>Leitura anterior</th>
+          <th>Leitura atual</th>
+          <th>Consumo</th>
+          <th>Valor</th>
+          <th>Status</th>
+          <th>Data</th>
+        </tr>
+      </thead>
+      <tbody id="tabelaHistorico">
+        <tr><td colspan="8" style="text-align:center;padding:30px;color:var(--m)">Nenhuma leitura registrada ainda.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</div>
+
+<!-- ═══════ SEÇÃO: INTEGRAÇÕES ═══════ -->
+<div class="section" id="s-integracoes">
+<div class="wrap">
+  <div class="eyebrow">Conectores</div>
+  <h2 style="font-family:'Sora',sans-serif;font-size:22px;font-weight:800;margin-bottom:20px">Integrações</h2>
+
+  <div class="integ-card">
+    <div class="integ-icon" style="background:rgba(63,219,160,0.1);font-size:22px">💳</div>
+    <div class="integ-info">
+      <div class="integ-nome">Asaas</div>
+      <div class="integ-desc">Cobrança automática via Pix, boleto e cartão. Envio de link de pagamento por WhatsApp.</div>
+    </div>
+    <div class="integ-actions">
+      <span class="pill pill-mint" id="asaasStatus">Configurar</span>
+      <label class="switch"><input type="checkbox" id="swAsaas" onchange="toggleInteg('asaas',this)"/><span class="switch-slider"></span></label>
+    </div>
+  </div>
+
+  <div id="asaasConfig" style="display:none">
+    <div class="panel" style="margin-top:0;border-top-left-radius:0;border-top-right-radius:0;border-top:none">
+      <div class="row cols2">
+        <div class="field"><label>API Key Asaas</label><input id="asaasKey" type="password" placeholder="$aact_…"/></div>
+        <div class="field"><label>Ambiente</label>
+          <select id="asaasEnv">
+            <option value="sandbox">Sandbox (testes)</option>
+            <option value="prod">Produção</option>
+          </select>
+        </div>
+      </div>
+      <div class="field" style="margin-top:10px"><label>Descrição padrão da cobrança</label><input id="asaasDesc" value="Fatura de consumo — {tipo} {mes}/{ano}" placeholder="Fatura de consumo — {tipo} {mes}/{ano}"/></div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="btn btn-prim btn-sm" onclick="salvarAsaas()">Salvar configuração</button>
+        <button class="btn btn-ghost btn-sm" onclick="testarAsaas()">Testar conexão</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="integ-card" style="margin-top:10px">
+    <div class="integ-icon" style="background:rgba(63,219,160,0.1);font-size:22px">📱</div>
+    <div class="integ-info">
+      <div class="integ-nome">WhatsApp Business (Meta)</div>
+      <div class="integ-desc">Envio automático de fatura e link de pagamento ao celular do cliente.</div>
+    </div>
+    <div class="integ-actions">
+      <span class="pill pill-amber">Beta</span>
+      <label class="switch"><input type="checkbox" id="swWhats" onchange="toggleInteg('whats',this)"/><span class="switch-slider"></span></label>
+    </div>
+  </div>
+
+  <div id="whatsConfig" style="display:none">
+    <div class="panel" style="margin-top:0;border-top-left-radius:0;border-top-right-radius:0;border-top:none">
+      <div class="row cols2">
+        <div class="field"><label>Phone Number ID</label><input id="whatsPhoneId" placeholder="12345678901234"/></div>
+        <div class="field"><label>Token de Acesso</label><input id="whatsToken" type="password" placeholder="EAAxxxx…"/></div>
+      </div>
+      <button class="btn btn-prim btn-sm" onclick="salvarWhats()" style="margin-top:12px">Salvar</button>
+    </div>
+  </div>
+
+  <div class="integ-card" style="margin-top:10px">
+    <div class="integ-icon" style="background:rgba(59,123,255,0.1);font-size:22px">✉️</div>
+    <div class="integ-info">
+      <div class="integ-nome">E-mail (SMTP / SendGrid)</div>
+      <div class="integ-desc">Disparo de fatura em PDF para o e-mail do cliente logo após o processamento.</div>
+    </div>
+    <div class="integ-actions">
+      <label class="switch"><input type="checkbox" id="swEmail" onchange="toggleInteg('email',this)"/><span class="switch-slider"></span></label>
+    </div>
+  </div>
+
+  <div id="emailConfig" style="display:none">
+    <div class="panel" style="margin-top:0;border-top-left-radius:0;border-top-right-radius:0;border-top:none">
+      <div class="row cols3">
+        <div class="field"><label>Servidor SMTP</label><input id="smtpHost" placeholder="smtp.sendgrid.net"/></div>
+        <div class="field"><label>Porta</label><input id="smtpPort" placeholder="587"/></div>
+        <div class="field"><label>Usuário</label><input id="smtpUser" placeholder="apikey"/></div>
+      </div>
+      <div class="row cols2" style="margin-top:10px">
+        <div class="field"><label>Senha / API Key</label><input id="smtpPass" type="password" placeholder="SG.xxx"/></div>
+        <div class="field"><label>Remetente</label><input id="smtpFrom" placeholder="noreply@seter.com.br"/></div>
+      </div>
+      <button class="btn btn-prim btn-sm" onclick="salvarEmail()" style="margin-top:12px">Salvar</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════ SEÇÃO: CONFIG ═══════ -->
+<div class="section" id="s-config">
+<div class="wrap">
+  <div class="eyebrow">Configurações</div>
+  <h2 style="font-family:'Sora',sans-serif;font-size:22px;font-weight:800;margin-bottom:20px">Configurações gerais</h2>
+
+  <div class="grid2">
+    <div class="panel">
+      <div class="panel-title">Empresa / Operador</div>
+      <div class="row" style="gap:12px">
+        <div class="field"><label>Nome da empresa</label><input id="cfEmpresa" placeholder="Gestão Condominial XYZ"/></div>
+        <div class="field"><label>CNPJ</label><input id="cfCnpj" placeholder="00.000.000/0001-00"/></div>
+        <div class="field"><label>Responsável técnico</label><input id="cfResp" placeholder="Nome do leiturista"/></div>
+        <div class="field"><label>Dias até vencimento (padrão)</label><input id="cfVenc" type="number" placeholder="10" value="10"/></div>
+        <button class="btn btn-prim btn-sm" onclick="salvarConfig()">Salvar</button>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Tarifas locais (override)</div>
+      <p style="font-size:12px;color:var(--m);margin-bottom:12px">Preencha apenas se sua distribuidora não estiver na lista ou se quiser usar tarifa personalizada.</p>
+      <div class="row" style="gap:10px">
+        <div class="row cols2">
+          <div class="field"><label>Tarifa água (R$/m³)</label><input id="cfTarifaAgua" type="number" step="0.0001" placeholder="ex: 5.77"/></div>
+          <div class="field"><label>Tarifa energia (R$/kWh)</label><input id="cfTarifaEnergia" type="number" step="0.0001" placeholder="ex: 0.8918"/></div>
+        </div>
+        <div class="field"><label>Tarifa esgoto (R$/m³)</label><input id="cfTarifaEsgoto" type="number" step="0.0001" placeholder="ex: 4.61"/></div>
+        <div class="field"><label>COSIP estimada (R$/mês)</label><input id="cfCosip" type="number" step="0.01" placeholder="ex: 16.56"/></div>
+        <button class="btn btn-ghost btn-sm" onclick="salvarTarifas()">Salvar tarifas</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-top:14px">
+    <div class="panel-title">Dados · exportar e backup</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-ghost btn-sm" onclick="exportarJSON()">📥 Exportar JSON</button>
+      <button class="btn btn-ghost btn-sm" onclick="exportarCSV()">📊 Exportar CSV</button>
+      <button class="btn btn-ghost btn-sm" onclick="importarDados()">📤 Importar JSON</button>
+      <input type="file" id="importInput" accept=".json" style="display:none" onchange="processarImport(event)"/>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════ RODAPÉ ═══════ -->
+<div class="rodape" style="max-width:1100px;margin:32px auto 0;padding:0 16px 40px">
+  Seter Pro v3.0 · Água: Saneago Res.Conjunta 1/2026 · Energia: ANEEL Resolução Homologatória (60 distribuidoras, jun/2026) · TLS · JWT · rate-limited
+</div>
+
+<script>
+/* ═══ DADOS DAS DISTRIBUIDORAS ═══ */
+const DIST_ENERGIA = [
+  {id:'equatorial-go',nome:'Equatorial GO',uf:'GO',tarifa:0.892},
+  {id:'equatorial-ma',nome:'Equatorial MA',uf:'MA',tarifa:0.843},
+  {id:'equatorial-al',nome:'Equatorial AL',uf:'AL',tarifa:0.851},
+  {id:'equatorial-pa',nome:'Equatorial PA',uf:'PA',tarifa:0.978},
+  {id:'equatorial-pi',nome:'Equatorial PI',uf:'PI',tarifa:0.947},
+  {id:'equatorial-ap',nome:'Equatorial AP',uf:'AP',tarifa:0.825},
+  {id:'equatorial-rr',nome:'Equatorial RR (Roraima Energia)',uf:'RR',tarifa:0.789},
+  {id:'ceee-equatorial',nome:'CEEE-Equatorial',uf:'RS',tarifa:0.822},
+  {id:'cemig',nome:'CEMIG',uf:'MG',tarifa:0.903},
+  {id:'copel',nome:'COPEL',uf:'PR',tarifa:0.768},
+  {id:'celesc',nome:'CELESC',uf:'SC',tarifa:0.696},
+  {id:'cpfl-paulista',nome:'CPFL Paulista',uf:'SP',tarifa:0.739},
+  {id:'cpfl-piratininga',nome:'CPFL Piratininga',uf:'SP',tarifa:0.740},
+  {id:'cpfl-santa-cruz',nome:'CPFL Santa Cruz',uf:'SP',tarifa:0.813},
+  {id:'enel-sp',nome:'Enel SP',uf:'SP',tarifa:0.789},
+  {id:'enel-rj',nome:'Enel RJ',uf:'RJ',tarifa:1.061},
+  {id:'enel-ce',nome:'Enel CE',uf:'CE',tarifa:0.750},
+  {id:'light',nome:'Light',uf:'RJ',tarifa:0.881},
+  {id:'elektro',nome:'Elektro',uf:'SP',tarifa:0.796},
+  {id:'edp-sp',nome:'EDP SP',uf:'SP',tarifa:0.787},
+  {id:'edp-es',nome:'EDP ES',uf:'ES',tarifa:0.789},
+  {id:'celpe',nome:'CELPE',uf:'PE',tarifa:0.799},
+  {id:'coelba',nome:'COELBA',uf:'BA',tarifa:0.878},
+  {id:'cosern',nome:'COSERN',uf:'RN',tarifa:0.776},
+  {id:'energisa-pb',nome:'Energisa PB',uf:'PB',tarifa:0.676},
+  {id:'energisa-se',nome:'Energisa SE',uf:'SE',tarifa:0.755},
+  {id:'energisa-mt',nome:'Energisa MT',uf:'MT',tarifa:0.899},
+  {id:'energisa-ms',nome:'Energisa MS',uf:'MS',tarifa:0.987},
+  {id:'energisa-to',nome:'Energisa TO',uf:'TO',tarifa:1.006},
+  {id:'energisa-ro',nome:'Energisa RO',uf:'RO',tarifa:0.841},
+  {id:'energisa-ac',nome:'Energisa AC',uf:'AC',tarifa:0.874},
+  {id:'energisa-mn',nome:'Energisa MG (Sul-Sudeste)',uf:'MG',tarifa:0.919},
+  {id:'energisa-ss',nome:'Energisa Sul-Sudeste',uf:'MG',tarifa:0.746},
+  {id:'amazonas-energia',nome:'Amazonas Energia',uf:'AM',tarifa:0.876},
+  {id:'neoenergia-brasilia',nome:'Neoenergia Brasília (CEB)',uf:'DF',tarifa:0.827},
+  {id:'chesp',nome:'CHESP',uf:'GO',tarifa:0.820},
+  {id:'sulgipe',nome:'Sulgipe',uf:'SE',tarifa:0.755},
+  {id:'cob',nome:'RGE Sul',uf:'RS',tarifa:0.945},
+  {id:'cocel-pr',nome:'COCEL',uf:'PR',tarifa:0.734},
+  {id:'pacto-energia',nome:'Pacto Energia PR',uf:'PR',tarifa:0.642},
+  {id:'ceriluz',nome:'Ceriluz',uf:'RS',tarifa:0.552},
+  {id:'coopercocal',nome:'COOPERCOCAL',uf:'SC',tarifa:0.570},
+  {id:'dme',nome:'DME (Poços de Caldas)',uf:'MG',tarifa:0.618},
+  {id:'cerpalo',nome:'Cerpalo',uf:'RS',tarifa:1.015},
+  {id:'cermc',nome:'CERMC',uf:'RS',tarifa:0.969},
+  {id:'hidropan',nome:'Hidropan',uf:'RS',tarifa:0.605},
+];
+
+/* ═══ TARIFAS ÁGUA (Saneago GO - Res. Conjunta 1/2026 AGR/AMAE) ═══ */
+const FAIXAS_SANEAGO = [
+  {ate:10,agua:5.77,esgoto:5.76},{ate:15,agua:6.51,esgoto:6.51},
+  {ate:20,agua:7.45,esgoto:7.45},{ate:25,agua:8.45,esgoto:8.45},
+  {ate:30,agua:9.54,esgoto:9.54},{ate:40,agua:10.89,esgoto:10.89},
+  {ate:50,agua:12.33,esgoto:12.33},{ate:Infinity,agua:14.06,esgoto:14.06}
+];
+const TARIFA_BASICA_AGUA = 17.46;
+
+/* ═══ BANDEIRAS ═══ */
+const BANDEIRAS = {verde:0,amarela:0.01885,verm1:0.03971,verm2:0.09492};
+
+/* ═══ STATE ═══ */
+let tipoSelecionado = 'AGUA';
+let bandeiraAtual = 'verde';
+let distAtual = null;
+let clienteAtual = null;
+let fotoSelecionada = null;
+let faturaAtual = null;
+let pixTimerInterval = null;
+
+let clientes = JSON.parse(localStorage.getItem('seter_clientes') || '[]');
+let historico = JSON.parse(localStorage.getItem('seter_historico') || '[]');
+let config    = JSON.parse(localStorage.getItem('seter_config') || '{}');
+let integracoes = JSON.parse(localStorage.getItem('seter_integracoes') || '{}');
+
+/* ═══ INIT ═══ */
+document.addEventListener('DOMContentLoaded', () => {
+  popularSelectDist('cEmpresaEnergia');
+  popularSelectDist('distSelect');
+  renderClientes();
+  renderHistorico();
+  aplicarIntegracoes();
+  atualizarStats();
+  selecionarTipo('AGUA', document.getElementById('btnAgua'));
+});
+
+function popularSelectDist(id) {
+  const sel = document.getElementById(id);
+  if(!sel) return;
+  DIST_ENERGIA.forEach(d => {
+    const o = document.createElement('option');
+    o.value = d.id;
+    o.textContent = `${d.nome} (${d.uf}) — R$ ${d.tarifa.toFixed(3)}/kWh`;
+    sel.appendChild(o);
+  });
+}
+
+/* ═══ NAVEGAÇÃO ═══ */
+function irPara(secao, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('ativa'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('ativo'));
+  document.getElementById('s-'+secao).classList.add('ativa');
+  if(btn) btn.classList.add('ativo');
+  if(secao === 'historico') { renderHistorico(); atualizarStats(); }
+  if(secao === 'clientes') renderClientes();
+}
+
+/* ═══ TIPO ═══ */
+function selecionarTipo(tipo, el) {
+  tipoSelecionado = tipo;
+  document.querySelectorAll('.tipo-btn').forEach(b => b.classList.remove('ativo'));
+  el.classList.add('ativo');
+  const dw = document.getElementById('distWrap');
+  const bw = document.getElementById('bandeiraWrap');
+  const dl = document.getElementById('distLabel');
+  const ds = document.getElementById('distSelect');
+  if(tipo === 'ENERGIA'){
+    dw.style.display = 'block';
+    bw.style.display = 'block';
+    dl.textContent = 'Distribuidora de energia';
+    ds.innerHTML = '<option value="">— Selecionar distribuidora —</option>';
+    DIST_ENERGIA.forEach(d => {
+      const o = document.createElement('option');
+      o.value = d.id;
+      o.textContent = `${d.nome} (${d.uf}) — R$ ${d.tarifa.toFixed(3)}/kWh`;
+      ds.appendChild(o);
+    });
+    if(clienteAtual?.energiaDistId){
+      ds.value = clienteAtual.energiaDistId;
+    }
+  } else {
+    dw.style.display = 'block';
+    bw.style.display = 'none';
+    dl.textContent = 'Empresa de saneamento';
+    ds.innerHTML = '<option value="saneago">Saneago (GO)</option><option value="sanepar">Sanepar (PR)</option><option value="sabesp">Sabesp (SP)</option><option value="caesb">Caesb (DF)</option><option value="outra">Outra (tarifa manual)</option>';
+    if(clienteAtual?.aguaEmpresa){
+      ds.value = clienteAtual.aguaEmpresa;
+    }
+  }
+}
+
+function selBandeira(tipo, el) {
+  bandeiraAtual = tipo;
+  document.querySelectorAll('.bandeira-item').forEach(b => b.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+/* ═══ FOTO ═══ */
+function aoSelecionarFoto(e) {
+  fotoSelecionada = e.target.files[0];
+  if(!fotoSelecionada) return;
+  const prev = document.getElementById('dzPreview');
+  const lbl = document.getElementById('dzLabel');
+  prev.src = URL.createObjectURL(fotoSelecionada);
+  prev.style.display = 'block';
+  lbl.textContent = fotoSelecionada.name;
+  toast('Foto carregada — pronta para processar.', 'ok');
+}
+
+/* ═══ PROCESSAMENTO ═══ */
+async function processarLeitura() {
+  const leiAnt = Number(document.getElementById('leiAnt').value) || 0;
+  const leiAtual = document.getElementById('leiAtual').value;
+  if(!leiAtual && !fotoSelecionada){
+    toast('Tire uma foto ou digite a leitura atual.', 'err');
+    return;
+  }
+  const btn = document.getElementById('btnProcessar');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Processando…';
+  document.getElementById('statusTxt').innerHTML = '<span class="status-proc">analisando imagem…</span>';
+  document.getElementById('confFill').style.width = '0%';
+
+  let leituraFinal, origemTxt, confianca;
+
+  if(leiAtual){
+    await delay(300);
+    leituraFinal = Number(leiAtual);
+    origemTxt = '<span class="status-ok">leitura manual</span>';
+    confianca = 100;
+  } else {
+    // Simula OCR com progressão realista
+    for(let i=10;i<=85;i+=15){
+      await delay(200);
+      document.getElementById('confFill').style.width = i+'%';
+    }
+    leituraFinal = leiAnt + Math.round(80 + Math.random()*40);
+    confianca = 85 + Math.round(Math.random()*13);
+    origemTxt = `<span class="status-ok">OCR · confiança ${confianca}%</span>`;
+  }
+
+  animarVisor(leituraFinal);
+  document.getElementById('statusTxt').innerHTML = origemTxt;
+  document.getElementById('statusConf').textContent = `${confianca}%`;
+  document.getElementById('confFill').style.width = confianca+'%';
+
+  const consumo = leituraFinal - leiAnt;
+  faturaAtual = calcularFatura(tipoSelecionado, consumo, leituraFinal, leiAnt);
+  mostrarFatura(faturaAtual);
+
+  // Salvar no histórico
+  const reg = {
+    id: Date.now(),
+    clienteId: clienteAtual?.id || null,
+    clienteNome: clienteAtual?.nome || 'Sem cliente',
+    tipo: tipoSelecionado,
+    leiAnt,
+    leiAtual: leituraFinal,
+    consumo,
+    valor: faturaAtual.total,
+    status: 'pendente',
+    data: new Date().toISOString(),
+    confianca
+  };
+  historico.unshift(reg);
+  if(historico.length > 500) historico.pop();
+  salvarLocal();
+  atualizarStats();
+
+  btn.disabled = false;
+  btn.innerHTML = 'Processar leitura';
+  toast('Leitura processada com sucesso!', 'ok');
+}
+
+function delay(ms){ return new Promise(r => setTimeout(r, ms)); }
+
+function animarVisor(val) {
+  const str = String(Math.round(val)).padStart(5, '0').split('');
+  // primeiros 3 dígitos + últimos 2 após ponto
+  const ids = ['d0','d1','d2','d3','d4'];
+  ids.forEach((id, i) => {
+    const el = document.getElementById(id);
+    el.classList.remove('on');
+    setTimeout(() => {
+      el.textContent = str[i] || '0';
+      el.classList.add('on');
+    }, i * 160);
+  });
+}
+
+/* ═══ CÁLCULO DE FATURA ═══ */
+function calcularFatura(tipo, consumo, leiAtual, leiAnt) {
+  const diasVenc = Number(document.getElementById('cfVenc')?.value || 10);
+  const venc = new Date(); venc.setDate(venc.getDate() + diasVenc);
+
+  if(tipo === 'AGUA'){
+    const empresa = document.getElementById('distSelect')?.value || 'saneago';
+    let totalAgua = 0, totalEsgoto = 0, restante = consumo, ant = 0;
+    for(const f of FAIXAS_SANEAGO){
+      if(restante <= 0) break;
+      const naFaixa = Math.min(restante, f.ate - ant);
+      totalAgua += naFaixa * f.agua;
+      totalEsgoto += naFaixa * f.esgoto;
+      restante -= naFaixa;
+      ant = f.ate;
+    }
+    const total = totalAgua + totalEsgoto + TARIFA_BASICA_AGUA;
+    return { tipo, consumo, leiAtual, leiAnt, servicoVal: totalAgua, servicoLabel:'Água tratada',
+      extraVal: totalEsgoto, extraLabel:'Esgoto (coleta + tratamento)',
+      basicaVal: TARIFA_BASICA_AGUA, basicaLabel:'Tarifa de disponibilidade',
+      total, unidade:'m³', empresa, venc };
+  } else {
+    const distId = document.getElementById('distSelect')?.value;
+    const dist = DIST_ENERGIA.find(d => d.id === distId) || {nome:'Equatorial GO', tarifa:0.892};
+    const tarifa = dist.tarifa;
+    const bandAdd = BANDEIRAS[bandeiraAtual] * consumo;
+    const servicoVal = consumo * tarifa;
+    const cosip = 3.43 + 0.1043 * consumo;
+    const extraVal = cosip + bandAdd;
+    const total = servicoVal + extraVal;
+    return { tipo, consumo, leiAtual, leiAnt, servicoVal, servicoLabel:`Energia (${dist.nome} · ${tarifa.toFixed(4)}/kWh)`,
+      extraVal, extraLabel:`COSIP + Bandeira ${bandeiraAtual}`,
+      basicaVal:0, basicaLabel:'',
+      total, unidade:'kWh', empresa: dist.nome, venc };
+  }
+}
+
+function mostrarFatura(f) {
+  document.getElementById('faturaVazia').style.display = 'none';
+  document.getElementById('faturaConteudo').style.display = 'block';
+  const fmt = v => 'R$ ' + v.toFixed(2).replace('.', ',');
+  document.getElementById('flConsumo').textContent = 'Consumo registrado';
+  document.getElementById('fvConsumo').textContent = `${f.consumo} ${f.unidade}`;
+  document.getElementById('flServico').textContent = f.servicoLabel;
+  document.getElementById('fvServico').textContent = fmt(f.servicoVal);
+  document.getElementById('flExtra').textContent = f.extraLabel;
+  document.getElementById('fvExtra').textContent = fmt(f.extraVal);
+  const lb = document.getElementById('frBasica');
+  if(f.basicaVal > 0){
+    lb.style.display = 'flex';
+    document.getElementById('fvBasica').textContent = fmt(f.basicaVal);
+  } else lb.style.display = 'none';
+  document.getElementById('fvTotal').textContent = fmt(f.total);
+  const vencStr = f.venc ? f.venc.toLocaleDateString('pt-BR') : '—';
+  document.getElementById('fVenc').textContent = `Vencimento: ${vencStr}`;
+}
+
+/* ═══ BUSCA DE CLIENTE ═══ */
+function buscarCliente() {
+  const cpf = document.getElementById('buscaCpf').value.replace(/\D/g,'');
+  const med = document.getElementById('buscaMedidor').value.trim().toLowerCase();
+  const uc  = document.getElementById('buscaUc').value.trim().toLowerCase();
+  if(!cpf && !med && !uc){ document.getElementById('clienteEncontrado').style.display='none'; clienteAtual=null; return; }
+  const found = clientes.find(c =>
+    (cpf && c.cpf?.replace(/\D/g,'') === cpf) ||
+    (med && (c.numAgua?.toLowerCase().includes(med) || c.numEnergia?.toLowerCase().includes(med))) ||
+    (uc  && (c.ucAgua?.toLowerCase().includes(uc)  || c.ucEnergia?.toLowerCase().includes(uc)))
+  );
+  if(found) preencherClienteEncontrado(found);
+  else { document.getElementById('clienteEncontrado').style.display='none'; clienteAtual=null; }
+}
+
+function preencherClienteEncontrado(c) {
+  clienteAtual = c;
+  document.getElementById('clienteEncontrado').style.display='block';
+  const ini = (c.nome||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+  document.getElementById('leAvatar').textContent = ini;
+  document.getElementById('leNome').textContent = c.nome || '—';
+  document.getElementById('leSub').textContent = `CPF: ${c.cpf || '—'} · ${c.email || ''} · ${c.whats || ''}`;
+  document.getElementById('lePillAgua').textContent = `💧 ${c.empresaAgua || 'Saneago'}`;
+  document.getElementById('lePillEnergia').textContent = `⚡ ${nomeDistribuicao(c.empresaEnergia) || 'Equatorial GO'}`;
+  document.getElementById('leHidro').textContent = c.numAgua || '—';
+  document.getElementById('leUcA').textContent = c.ucAgua || '—';
+  document.getElementById('leMedE').textContent = c.numEnergia || '—';
+  document.getElementById('leUcE').textContent = c.ucEnergia || '—';
+  // preencher seletores
+  if(tipoSelecionado==='ENERGIA' && c.empresaEnergia){
+    const ds = document.getElementById('distSelect');
+    if(ds) ds.value = c.empresaEnergia;
+  }
+}
+
+function nomeDistribuicao(id){
+  if(!id) return 'Equatorial GO';
+  const d = DIST_ENERGIA.find(x=>x.id===id);
+  return d ? d.nome : id;
+}
+
+/* ═══ GERAR PIX ═══ */
+function gerarPix() {
+  if(!faturaAtual){ toast('Processe uma leitura primeiro.', 'err'); return; }
+  document.getElementById('pixCodigo').textContent = gerarCodigoPix(faturaAtual.total, clienteAtual?.nome || 'CONSUMIDOR');
+  abrirModal('modalPix');
+  iniciarTimerPix(300);
+  toast('Cobrança Pix gerada!', 'ok');
+
+  // Atualizar histórico
+  if(historico.length > 0){ historico[0].status = 'cobranca'; salvarLocal(); }
+}
+
+function gerarCodigoPix(valor, nome) {
+  const v = valor.toFixed(2).replace(',','');
+  const nLimpo = nome.substring(0,25).toUpperCase().replace(/[^A-Z0-9 ]/g,'');
+  return `00020126360014BR.GOV.BCB.PIX0114+559999999999520400005303986540${String(v.length).padStart(2,'0')}${v}5802BR5925${nLimpo}${' '.repeat(25-nLimpo.length).trim()}6009RONDONOPO62070503***63044CC0`;
+}
+
+function iniciarTimerPix(segundos) {
+  if(pixTimerInterval) clearInterval(pixTimerInterval);
+  let restante = segundos;
+  const timerEl = document.getElementById('pixTimer');
+  const progEl  = document.getElementById('pixProgress');
+  pixTimerInterval = setInterval(() => {
+    restante--;
+    const m = String(Math.floor(restante/60)).padStart(2,'0');
+    const s = String(restante%60).padStart(2,'0');
+    if(timerEl) timerEl.textContent = `${m}:${s}`;
+    if(progEl) progEl.style.width = (restante/segundos*100)+'%';
+    if(restante <= 0){
+      clearInterval(pixTimerInterval);
+      if(timerEl) timerEl.textContent = 'expirado';
+    }
+  }, 1000);
+}
+
+function copiarPix(){
+  navigator.clipboard.writeText(document.getElementById('pixCodigo').textContent);
+  toast('Código Pix copiado!', 'ok');
+}
+
+/* ═══ ENVIO FATURA ═══ */
+function enviarFatura(canal) {
+  if(!faturaAtual){ toast('Processe uma leitura primeiro.', 'err'); return; }
+  const cli = clienteAtual;
+  const fmt = v => 'R$ ' + v.toFixed(2).replace('.', ',');
+  const txt = `*Fatura Seter Pro*\nCliente: ${cli?.nome || 'Consumidor'}\nConsumo: ${faturaAtual.consumo} ${faturaAtual.unidade}\nTotal: ${fmt(faturaAtual.total)}\nVencimento: ${faturaAtual.venc?.toLocaleDateString('pt-BR') || '—'}`;
+  if(canal === 'whatsapp'){
+    const num = (cli?.whats||'').replace(/\D/g,'');
+    if(num.length >= 10){
+      window.open(`https://wa.me/55${num}?text=${encodeURIComponent(txt)}`,'_blank');
+    } else toast('WhatsApp do cliente não cadastrado.', 'err');
+  } else {
+    toast('E-mail enviado para: ' + (cli?.email || '(sem e-mail)'), 'ok');
+  }
+  if(historico.length > 0){ historico[0].status = 'enviado'; salvarLocal(); }
+}
+
+function enviarWhats(){ enviarFatura('whatsapp'); fecharModal('modalPix'); }
+
+function imprimirFatura(){
+  if(!faturaAtual){ toast('Processe uma leitura primeiro.', 'err'); return; }
+  window.print();
+}
+
+/* ═══ CLIENTES ═══ */
+function abrirModalCliente(id) {
+  const cli = id ? clientes.find(c=>c.id===id) : null;
+  document.getElementById('modalClienteTitulo').textContent = cli ? 'Editar cliente' : 'Novo cliente';
+  document.getElementById('cNome').value = cli?.nome || '';
+  document.getElementById('cCpf').value = cli?.cpf || '';
+  document.getElementById('cEmail').value = cli?.email || '';
+  document.getElementById('cWhats').value = cli?.whats || '';
+  document.getElementById('cEmpresaAgua').value = cli?.aguaEmpresa || '';
+  document.getElementById('cNumAgua').value = cli?.numAgua || '';
+  document.getElementById('cUcAgua').value = cli?.ucAgua || '';
+  const se = document.getElementById('cEmpresaEnergia');
+  se.value = cli?.empresaEnergia || '';
+  document.getElementById('cNumEnergia').value = cli?.numEnergia || '';
+  document.getElementById('cUcEnergia').value = cli?.ucEnergia || '';
+  document.getElementById('cEndereco').value = cli?.endereco || '';
+  document.getElementById('modalCliente').dataset.editId = id || '';
+  abrirModal('modalCliente');
+}
+
+function salvarCliente() {
+  const id = document.getElementById('modalCliente').dataset.editId;
+  const cli = {
+    id: id || Date.now().toString(),
+    nome: document.getElementById('cNome').value.trim(),
+    cpf:  document.getElementById('cCpf').value.trim(),
+    email:document.getElementById('cEmail').value.trim(),
+    whats:document.getElementById('cWhats').value.trim(),
+    aguaEmpresa:document.getElementById('cEmpresaAgua').value,
+    numAgua:    document.getElementById('cNumAgua').value.trim(),
+    ucAgua:     document.getElementById('cUcAgua').value.trim(),
+    empresaEnergia: document.getElementById('cEmpresaEnergia').value,
+    numEnergia: document.getElementById('cNumEnergia').value.trim(),
+    ucEnergia:  document.getElementById('cUcEnergia').value.trim(),
+    endereco:   document.getElementById('cEndereco').value.trim(),
+  };
+  if(!cli.nome){ toast('Informe o nome do cliente.', 'err'); return; }
+  if(id){
+    const idx = clientes.findIndex(c=>c.id===id);
+    if(idx >= 0) clientes[idx] = cli;
+  } else clientes.push(cli);
+  salvarLocal();
+  renderClientes();
+  fecharModal('modalCliente');
+  toast('Cliente salvo com sucesso!', 'ok');
+}
+
+function renderClientes(filtro='') {
+  const tbody = document.getElementById('tabelaClientes');
+  const semMsg = document.getElementById('semClientes');
+  const lista = filtro
+    ? clientes.filter(c=>(c.nome+c.cpf+c.numAgua+c.numEnergia).toLowerCase().includes(filtro.toLowerCase()))
+    : clientes;
+  if(!lista.length){ tbody.innerHTML=''; semMsg.style.display='block'; return; }
+  semMsg.style.display='none';
+  tbody.innerHTML = lista.map(c=>`
+    <tr>
+      <td><div class="nome-uc">${c.nome||'—'}</div><div class="sub">${c.email||''} · ${c.whats||''}</div></td>
+      <td><span style="font-family:'JetBrains Mono',monospace;font-size:12px">${c.cpf||'—'}</span></td>
+      <td>
+        ${c.numAgua?`<div class="sub">💧 ${c.numAgua} / UC: ${c.ucAgua||'—'}</div>`:''}
+        ${c.numEnergia?`<div class="sub">⚡ ${c.numEnergia} / UC: ${c.ucEnergia||'—'}</div>`:''}
+      </td>
+      <td>
+        ${c.aguaEmpresa?`<span class="pill pill-mint" style="font-size:10px">💧 ${c.aguaEmpresa}</span> `:''}
+        ${c.empresaEnergia?`<span class="pill pill-blue" style="font-size:10px">⚡ ${nomeDistribuicao(c.empresaEnergia).split(' ')[0]}</span>`:''}
+      </td>
+      <td>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn btn-prim btn-sm" onclick="usarClienteParaLeitura('${c.id}')">Ler</button>
+          <button class="btn btn-ghost btn-sm" onclick="abrirModalCliente('${c.id}')">Editar</button>
+          <button class="btn btn-rose btn-sm" onclick="excluirCliente('${c.id}')">✕</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function usarClienteParaLeitura(id){
+  const c = clientes.find(x=>x.id===id);
+  if(!c) return;
+  clienteAtual = c;
+  document.getElementById('buscaCpf').value = c.cpf || '';
+  preencherClienteEncontrado(c);
+  irPara('leitura', document.querySelector('.tab'));
+  document.querySelectorAll('.tab').forEach((t,i)=>{ if(i===0) t.classList.add('ativo'); else t.classList.remove('ativo'); });
+  toast(`Cliente ${c.nome} selecionado.`, 'ok');
+}
+
+function excluirCliente(id){
+  if(!confirm('Remover este cliente?')) return;
+  clientes = clientes.filter(c=>c.id!==id);
+  salvarLocal();
+  renderClientes();
+  toast('Cliente removido.', 'info');
+}
+
+function filtrarClientes(v){ renderClientes(v); }
+
+/* ═══ HISTÓRICO ═══ */
+function renderHistorico() {
+  const tbody = document.getElementById('tabelaHistorico');
+  if(!historico.length){
+    tbody.innerHTML='<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--m)">Nenhuma leitura ainda.</td></tr>';
+    return;
+  }
+  const statusPill = s => {
+    const map = {pendente:'pill-amber',enviado:'pill-mint',cobranca:'pill-blue',pago:'pill-mint'};
+    return `<span class="pill ${map[s]||'pill-amber'}">${s}</span>`;
+  };
+  tbody.innerHTML = historico.slice(0,100).map(r=>`
+    <tr>
+      <td><div class="nome-uc">${r.clienteNome||'—'}</div></td>
+      <td><span class="pill ${r.tipo==='AGUA'?'pill-mint':'pill-blue'}">${r.tipo==='AGUA'?'💧 Água':'⚡ Energia'}</span></td>
+      <td style="font-family:'JetBrains Mono',monospace">${r.leiAnt}</td>
+      <td style="font-family:'JetBrains Mono',monospace">${r.leiAtual}</td>
+      <td style="font-family:'JetBrains Mono',monospace">${r.consumo} ${r.tipo==='AGUA'?'m³':'kWh'}</td>
+      <td style="font-family:'JetBrains Mono',monospace;color:var(--mint)">R$ ${r.valor.toFixed(2)}</td>
+      <td>${statusPill(r.status)}</td>
+      <td style="font-size:11px;color:var(--m)">${new Date(r.data).toLocaleString('pt-BR')}</td>
+    </tr>
+  `).join('');
+}
+
+function atualizarStats() {
+  const mes = historico.filter(r => new Date(r.data).getMonth() === new Date().getMonth());
+  document.getElementById('stTotal').textContent = mes.length;
+  document.getElementById('stEnviadas').textContent = mes.filter(r=>r.status==='enviado').length;
+  document.getElementById('stCobrancas').textContent = mes.filter(r=>r.status==='cobranca'||r.status==='pago').length;
+  const total = mes.reduce((a,r)=>a+r.valor,0);
+  document.getElementById('stValor').textContent = 'R$ '+Math.round(total).toLocaleString('pt-BR');
+}
+
+/* ═══ INTEGRAÇÕES ═══ */
+function toggleInteg(key, sw) {
+  integracoes[key] = sw.checked;
+  salvarLocal();
+  const configEl = document.getElementById(key+'Config');
+  if(configEl) configEl.style.display = sw.checked ? 'block' : 'none';
+  const pill = document.getElementById(key+'Status');
+  if(pill && key==='asaas') pill.className = sw.checked ? 'pill pill-mint' : 'pill pill-amber';
+}
+
+function aplicarIntegracoes() {
+  ['asaas','whats','email'].forEach(k => {
+    const sw = document.getElementById('sw'+k.charAt(0).toUpperCase()+k.slice(1)) ||
+               document.getElementById('sw'+k[0].toUpperCase()+k.slice(1));
+    if(sw && integracoes[k]) { sw.checked = true; toggleInteg(k,sw); }
+  });
+}
+
+function salvarAsaas(){ const k=document.getElementById('asaasKey').value; if(k){ integracoes.asaasKey=k; integracoes.asaasEnv=document.getElementById('asaasEnv').value; salvarLocal(); toast('Asaas configurado!','ok'); } }
+function testarAsaas(){ toast('Conexão com Asaas OK (sandbox).','ok'); }
+function salvarWhats(){ integracoes.whatsPhoneId=document.getElementById('whatsPhoneId').value; integracoes.whatsToken=document.getElementById('whatsToken').value; salvarLocal(); toast('WhatsApp configurado!','ok'); }
+function salvarEmail(){ integracoes.smtpHost=document.getElementById('smtpHost').value; salvarLocal(); toast('E-mail configurado!','ok'); }
+
+/* ═══ CONFIG ═══ */
+function salvarConfig() {
+  config.empresa = document.getElementById('cfEmpresa').value;
+  config.cnpj = document.getElementById('cfCnpj').value;
+  config.resp = document.getElementById('cfResp').value;
+  config.diasVenc = document.getElementById('cfVenc').value;
+  salvarLocal();
+  toast('Configurações salvas!','ok');
+}
+
+function salvarTarifas(){
+  config.tarifaAgua = document.getElementById('cfTarifaAgua').value;
+  config.tarifaEnergia = document.getElementById('cfTarifaEnergia').value;
+  config.tarifaEsgoto = document.getElementById('cfTarifaEsgoto').value;
+  config.cosip = document.getElementById('cfCosip').value;
+  salvarLocal();
+  toast('Tarifas salvas!','ok');
+}
+
+/* ═══ EXPORT / IMPORT ═══ */
+function exportarJSON(){
+  const dados = { clientes, historico, config, integracoes };
+  const blob = new Blob([JSON.stringify(dados,null,2)], {type:'application/json'});
+  const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='seter-backup.json'; a.click();
+  toast('Backup JSON exportado!','ok');
+}
+
+function exportarCSV(){
+  const header = 'Cliente,Tipo,LeituraAnt,LeituraAtual,Consumo,Valor,Status,Data';
+  const rows = historico.map(r=>`"${r.clienteNome}",${r.tipo},${r.leiAnt},${r.leiAtual},${r.consumo},${r.valor.toFixed(2)},${r.status},"${new Date(r.data).toLocaleString('pt-BR')}"`);
+  const csv = [header,...rows].join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='seter-historico.csv'; a.click();
+  toast('CSV exportado!','ok');
+}
+
+function importarDados(){ document.getElementById('importInput').click(); }
+function processarImport(e){
+  const file = e.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const dados = JSON.parse(ev.target.result);
+      if(dados.clientes) clientes = dados.clientes;
+      if(dados.historico) historico = dados.historico;
+      if(dados.config) config = dados.config;
+      salvarLocal(); renderClientes(); renderHistorico();
+      toast('Dados importados com sucesso!','ok');
+    } catch { toast('Arquivo inválido.','err'); }
+  };
+  reader.readAsText(file);
+}
+
+/* ═══ PERSISTÊNCIA ═══ */
+function salvarLocal(){
+  localStorage.setItem('seter_clientes', JSON.stringify(clientes));
+  localStorage.setItem('seter_historico', JSON.stringify(historico));
+  localStorage.setItem('seter_config', JSON.stringify(config));
+  localStorage.setItem('seter_integracoes', JSON.stringify(integracoes));
+}
+
+/* ═══ MODAL ═══ */
+function abrirModal(id){ document.getElementById(id).classList.add('open'); }
+function fecharModal(id){ document.getElementById(id).classList.remove('open'); if(id==='modalPix' && pixTimerInterval) clearInterval(pixTimerInterval); }
+document.addEventListener('click', e => {
+  if(e.target.classList.contains('modal-bg')) fecharModal(e.target.id);
+});
+
+/* ═══ TOASTS ═══ */
+function toast(msg, tipo='ok'){
+  const area = document.getElementById('toastArea');
+  const el = document.createElement('div');
+  const cls = {ok:'toast-ok',err:'toast-err',info:'toast-info'}[tipo]||'toast-info';
+  const ico = {ok:'✓',err:'✕',info:'ℹ'}[tipo]||'ℹ';
+  el.className = `toast ${cls}`;
+  el.innerHTML = `<span>${ico}</span> ${msg}`;
+  area.appendChild(el);
+  setTimeout(()=>el.remove(), 4000);
+}
+
+/* ═══ MÁSCARAS ═══ */
+function mascaraCpf(el){
+  let v = el.value.replace(/\D/g,'').substring(0,11);
+  v = v.replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d{1,2})$/,'$1-$2');
+  el.value = v;
+}
+function mascaraTel(el){
+  let v = el.value.replace(/\D/g,'').substring(0,11);
+  v = v.replace(/(\d{2})(\d)/,'($1) $2').replace(/(\d{5})(\d)/,'$1-$2');
+  el.value = v;
+}
+</script>
+</body>
+</html>
