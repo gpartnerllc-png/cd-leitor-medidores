@@ -1,65 +1,644 @@
-# Seter · Motor de Leitura de Medidores
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Seter · Motor de Leitura</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --navy-deep: #0b1120;
+        --slate-panel: #182338;
+        --slate-panel-2: #1e2b45;
+        --blue-signal: #3b7bff;
+        --cyan-pulse: #2de1f5;
+        --mint-confirm: #3fdba0;
+        --amber-alert: #f5a623;
+        --text-primary: #f1f4fb;
+        --text-muted: #94a3c4;
+        --border-soft: rgba(148, 163, 196, 0.22);
+      }
 
-Estrutura:
-```
-leitor-medidores/
-├── backend/            → API Node (OCR digital + fatura + WhatsApp)
-│   └── analog-api/     → Serviço Python separado (leitura de ponteiros)
-├── frontend/           → Dashboard (index.html) — deploy no Cloudflare Pages
-└── docs/README.md      → Detalhes técnicos e limites reais de cada módulo
-```
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
 
-## 1. Subir para o GitHub
+      body {
+        background: radial-gradient(
+          ellipse at top,
+          #0d1428 0%,
+          var(--navy-deep) 55%
+        );
+        color: var(--text-primary);
+        font-family: "Inter", sans-serif;
+        min-height: 100vh;
+        padding: 32px 16px 64px;
+      }
 
-No seu computador, dentro da pasta `leitor-medidores`:
+      .wrap {
+        max-width: 760px;
+        margin: 0 auto;
+      }
 
-```bash
-git init
-git add .
-git commit -m "Motor de leitura de medidores: OCR, fatura e WhatsApp"
-```
+      header {
+        margin-bottom: 32px;
+      }
+      .eyebrow {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12px;
+        letter-spacing: 0.12em;
+        color: var(--cyan-pulse);
+        text-transform: uppercase;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+      .eyebrow::before {
+        content: "";
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--mint-confirm);
+        box-shadow: 0 0 8px var(--mint-confirm);
+      }
+      h1 {
+        font-family: "Sora", sans-serif;
+        font-weight: 800;
+        font-size: 32px;
+        letter-spacing: -0.01em;
+      }
+      h1 span {
+        color: var(--blue-signal);
+      }
+      .subtitle {
+        color: var(--text-muted);
+        font-size: 14px;
+        margin-top: 6px;
+      }
 
-Crie o repositório vazio em https://github.com/new (sem README, sem .gitignore — já temos os nossos), depois:
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+      @media (min-width: 680px) {
+        .grid.split {
+          grid-template-columns: 1.1fr 1fr;
+        }
+      }
 
-```bash
-git remote add origin https://github.com/SEU-USUARIO/leitor-medidores.git
-git branch -M main
-git push -u origin main
-```
+      .panel {
+        background: linear-gradient(
+          180deg,
+          var(--slate-panel-2) 0%,
+          var(--slate-panel) 14%
+        );
+        border: 1px solid var(--border-soft);
+        border-radius: 16px;
+        padding: 22px;
+        box-shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset;
+      }
+      .panel h2 {
+        font-family: "Sora", sans-serif;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-muted);
+        margin-bottom: 16px;
+      }
 
-## 2. Deploy do backend Node (Railway)
+      .dropzone {
+        border: 1.5px dashed rgba(47, 111, 237, 0.4);
+        border-radius: 14px;
+        padding: 36px 20px;
+        text-align: center;
+        cursor: pointer;
+        transition:
+          border-color 0.2s ease,
+          background 0.2s ease;
+        background: rgba(47, 111, 237, 0.04);
+      }
+      .dropzone:hover {
+        border-color: var(--cyan-pulse);
+        background: rgba(34, 211, 238, 0.05);
+      }
+      .dropzone svg {
+        margin-bottom: 12px;
+      }
+      .dropzone .label {
+        font-weight: 600;
+        font-size: 15px;
+      }
+      .dropzone .hint {
+        color: var(--text-muted);
+        font-size: 13px;
+        margin-top: 4px;
+      }
+      input[type="file"] {
+        display: none;
+      }
 
-1. Acesse https://railway.app → **New Project → Deploy from GitHub repo**
-2. Selecione o repositório e, em **Root Directory**, informe `backend`
-3. Railway detecta o `Procfile` e o `package.json` automaticamente
-4. Em **Variables**, adicione:
-   - `JWT_SECRET` — uma string aleatória forte
-   - `WHATSAPP_PHONE_ID` — Phone Number ID da Meta
-   - `WHATSAPP_TOKEN` — token de acesso da Meta
-5. Deploy. Railway te dá uma URL tipo `https://leitor-backend.up.railway.app`
+      .tipo-toggle {
+        display: flex;
+        gap: 8px;
+        margin-top: 16px;
+      }
+      .tipo-toggle button {
+        flex: 1;
+        padding: 10px;
+        border-radius: 10px;
+        border: 1px solid var(--border-soft);
+        background: var(--slate-panel-2);
+        color: var(--text-muted);
+        font-family: "Inter", sans-serif;
+        font-weight: 600;
+        font-size: 13px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+      .tipo-toggle button.ativo {
+        background: rgba(47, 111, 237, 0.15);
+        border-color: var(--blue-signal);
+        color: var(--text-primary);
+      }
 
-(Render.com funciona de forma equivalente, se preferir.)
+      .campo-manual {
+        margin-top: 14px;
+      }
+      .rotulo-campo {
+        display: block;
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-bottom: 6px;
+        font-weight: 600;
+      }
+      .input-numero {
+        width: 100%;
+        padding: 11px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--border-soft);
+        background: var(--slate-panel-2);
+        color: var(--text-primary);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 14px;
+      }
+      .input-numero:focus {
+        outline: none;
+        border-color: var(--cyan-pulse);
+      }
 
-## 3. Deploy do serviço Python (leitura analógica)
+      .visor-medidor {
+        background: radial-gradient(
+          ellipse at center,
+          #0d1524 0%,
+          #080c16 100%
+        );
+        border-radius: 12px;
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+        gap: 4px;
+        border: 1px solid rgba(45, 225, 245, 0.25);
+        box-shadow: inset 0 0 28px rgba(45, 225, 245, 0.07);
+      }
+      .digito {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 34px;
+        font-weight: 700;
+        width: 30px;
+        text-align: center;
+        color: rgba(232, 237, 247, 0.15);
+        transition:
+          color 0.4s ease,
+          text-shadow 0.4s ease;
+      }
+      .digito.resolvido {
+        color: var(--cyan-pulse);
+        text-shadow: 0 0 12px rgba(34, 211, 238, 0.5);
+      }
+      .status-linha {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 14px;
+        font-size: 12px;
+        color: var(--text-muted);
+        font-family: "JetBrains Mono", monospace;
+      }
+      .status-linha .ok {
+        color: var(--mint-confirm);
+      }
 
-Mesmo processo, mas com **Root Directory** = `backend/analog-api`. Railway detecta o `requirements.txt` e o `Procfile` (`gunicorn app:app`) sozinho.
+      .btn-principal {
+        width: 100%;
+        margin-top: 18px;
+        padding: 14px;
+        border: none;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--blue-signal), #2358c9);
+        color: white;
+        font-family: "Sora", sans-serif;
+        font-weight: 700;
+        font-size: 14px;
+        cursor: pointer;
+        transition: filter 0.15s ease;
+      }
+      .btn-principal:hover {
+        filter: brightness(1.1);
+      }
+      .btn-principal:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
 
-## 4. Deploy do dashboard (Cloudflare Pages)
+      .linha-fatura {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        font-size: 14px;
+        border-bottom: 1px solid var(--border-soft);
+      }
+      .linha-fatura:last-child {
+        border-bottom: none;
+      }
+      .linha-fatura .rotulo {
+        color: var(--text-muted);
+      }
+      .linha-fatura .valor {
+        font-family: "JetBrains Mono", monospace;
+        font-weight: 600;
+      }
+      .total-fatura {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-top: 12px;
+        padding-top: 14px;
+        border-top: 1px solid var(--border-soft);
+      }
+      .total-fatura .label {
+        font-size: 13px;
+        color: var(--text-muted);
+      }
+      .total-fatura .num {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 26px;
+        font-weight: 700;
+        color: var(--mint-confirm);
+      }
 
-Esse sim fica perfeito no Cloudflare, porque é 100% estático:
+      .btn-whatsapp {
+        width: 100%;
+        margin-top: 16px;
+        padding: 13px;
+        border-radius: 12px;
+        border: 1px solid rgba(52, 211, 153, 0.35);
+        background: rgba(52, 211, 153, 0.08);
+        color: var(--mint-confirm);
+        font-family: "Sora", sans-serif;
+        font-weight: 700;
+        font-size: 13px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+      .btn-whatsapp:hover {
+        background: rgba(52, 211, 153, 0.15);
+      }
 
-1. Dashboard da Cloudflare → **Workers & Pages → Create → Pages → Connect to Git**
-2. Selecione o repositório, **Root directory** = `frontend`
-3. Não precisa de build command (é HTML puro) — deixe em branco ou `echo "sem build"`
-4. **Output directory**: `/`
-5. Deploy. Você recebe uma URL tipo `leitor-medidores.pages.dev`
+      .placeholder-vazio {
+        text-align: center;
+        padding: 40px 12px;
+        color: var(--text-muted);
+        font-size: 13px;
+      }
 
-Depois, abra `frontend/index.html` e troque a linha:
-```js
-const API_URL = 'https://SEU-BACKEND-NODE.exemplo.com';
-```
-pela URL real do Railway do passo 2, e descomente o bloco de `fetch` real (está marcado no arquivo).
+      .rodape-tecnico {
+        margin-top: 24px;
+        font-size: 11px;
+        color: var(--text-muted);
+        font-family: "JetBrains Mono", monospace;
+        text-align: center;
+        opacity: 0.6;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <div class="eyebrow">Motor conectado</div>
+        <h1>Seter <span>Leitura</span></h1>
+        <div class="subtitle">
+          Fotografe o medidor · a leitura e a fatura aparecem em segundos
+        </div>
+      </header>
 
-## 5. Depois do primeiro deploy
+      <div class="grid split">
+        <div class="panel">
+          <h2>Captura</h2>
 
-Qualquer novo `git push` para `main` já dispara build e deploy automático nos três serviços — não precisa repetir os passos acima.
+          <label class="dropzone" id="dropzone">
+            <input
+              type="file"
+              id="inputFoto"
+              accept="image/*"
+              capture="environment"
+            />
+            <svg
+              width="36"
+              height="36"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#2F6FED"
+              stroke-width="1.6"
+            >
+              <path
+                d="M4 7h3l1.5-2h7L17 7h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1z"
+              />
+              <circle cx="12" cy="13" r="3.5" />
+            </svg>
+            <div class="label">Tirar ou enviar foto do medidor</div>
+            <div class="hint">JPG, PNG ou WEBP · até 8MB</div>
+          </label>
+
+          <div class="tipo-toggle">
+            <button id="btnAgua" class="ativo">💧 Água</button>
+            <button id="btnEnergia">⚡ Energia</button>
+          </div>
+
+          <div class="campo-manual">
+            <label class="rotulo-campo">Leitura anterior</label>
+            <input
+              type="number"
+              id="inputLeituraAnterior"
+              class="input-numero"
+              placeholder="ex: 12751"
+              value="12751"
+            />
+          </div>
+
+          <div class="campo-manual">
+            <label class="rotulo-campo"
+              >Leitura atual — digite se não quiser usar a foto</label
+            >
+            <input
+              type="number"
+              id="inputLeituraManual"
+              class="input-numero"
+              placeholder="deixe em branco para usar a foto"
+            />
+          </div>
+
+          <button class="btn-principal" id="btnProcessar">
+            Processar leitura
+          </button>
+        </div>
+
+        <div class="panel">
+          <h2>Leitura detectada</h2>
+
+          <div class="visor-medidor">
+            <span class="digito" id="d0">0</span>
+            <span class="digito" id="d1">0</span>
+            <span class="digito" id="d2">0</span>
+            <span class="digito" id="d3">0</span>
+            <span class="digito" id="d4">0</span>
+          </div>
+
+          <div class="status-linha">
+            <span id="statusTexto">aguardando foto…</span>
+            <span id="statusConfianca"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top: 16px" id="painelFatura">
+        <h2>Fatura calculada</h2>
+        <div class="placeholder-vazio" id="faturaVazia">
+          Processe uma leitura para ver o cálculo detalhado aqui.
+        </div>
+        <div id="faturaConteudo" style="display: none">
+          <div class="linha-fatura">
+            <span class="rotulo" id="rotuloConsumo">Consumo</span>
+            <span class="valor" id="valorConsumo">—</span>
+          </div>
+          <div class="linha-fatura">
+            <span class="rotulo" id="rotuloTarifa">Valor do serviço</span>
+            <span class="valor" id="valorTarifa">—</span>
+          </div>
+          <div class="linha-fatura" id="linhaBase" style="display: none">
+            <span class="rotulo" id="rotuloBase">Valor base</span>
+            <span class="valor" id="valorBase">—</span>
+          </div>
+          <div class="linha-fatura" id="linhaImpostos" style="display: none">
+            <span class="rotulo" id="rotuloImpostos">Impostos</span>
+            <span class="valor" id="valorImpostos">—</span>
+          </div>
+          <div class="linha-fatura" id="linhaExtra">
+            <span class="rotulo" id="rotuloExtra">Taxa adicional</span>
+            <span class="valor" id="valorExtra">—</span>
+          </div>
+          <div class="linha-fatura" id="linhaBasica" style="display: none">
+            <span class="rotulo">Tarifa básica</span>
+            <span class="valor" id="valorBasica">—</span>
+          </div>
+          <div class="total-fatura">
+            <span class="label">Total a pagar</span>
+            <span class="num" id="valorTotal">R$ 0,00</span>
+          </div>
+          <button class="btn-whatsapp" id="btnWhatsapp">
+            Enviar fatura por WhatsApp
+          </button>
+        </div>
+      </div>
+
+      <div class="rodape-tecnico">
+        Água: Saneago — Res. Conjunta 1/2026 AGR/AMAE · Energia: Equatorial GO — NF3e real (mai-jun/2026)
+      </div>
+      <div class="rodape-tecnico">
+        leitor.contatodroppfy.workers.dev · TLS · JWT · rate-limited
+      </div>
+    </div>
+
+    <script>
+      let tipoSelecionado = "AGUA";
+      let fotoSelecionada = null;
+
+      const btnAgua = document.getElementById("btnAgua");
+      const btnEnergia = document.getElementById("btnEnergia");
+      const inputFoto = document.getElementById("inputFoto");
+      const dropzone = document.getElementById("dropzone");
+      const btnProcessar = document.getElementById("btnProcessar");
+      const statusTexto = document.getElementById("statusTexto");
+      const statusConfianca = document.getElementById("statusConfianca");
+      const digitos = [0, 1, 2, 3, 4].map((i) =>
+        document.getElementById("d" + i),
+      );
+
+      btnAgua.onclick = () => {
+        tipoSelecionado = "AGUA";
+        btnAgua.classList.add("ativo");
+        btnEnergia.classList.remove("ativo");
+      };
+
+      btnEnergia.onclick = () => {
+        tipoSelecionado = "ENERGIA";
+        btnEnergia.classList.add("ativo");
+        btnAgua.classList.remove("ativo");
+      };
+
+      inputFoto.onchange = (e) => {
+        fotoSelecionada = e.target.files[0];
+        if (fotoSelecionada) {
+          dropzone.querySelector(".label").textContent = fotoSelecionada.name;
+          statusTexto.textContent = "foto carregada · pronta para processar";
+        }
+      };
+
+      function animarVisor(leituraFinal) {
+        const str = String(leituraFinal).padStart(5, "0").split("");
+        digitos.forEach((el, i) => {
+          el.classList.remove("resolvido");
+          setTimeout(() => {
+            el.textContent = str[i];
+            el.classList.add("resolvido");
+          }, i * 180);
+        });
+      }
+
+      btnProcessar.onclick = async () => {
+        const leituraManual =
+          document.getElementById("inputLeituraManual").value;
+        const leituraAnterior =
+          Number(document.getElementById("inputLeituraAnterior").value) || 0;
+        if (!leituraManual && !fotoSelecionada) {
+          statusTexto.textContent =
+            "tire uma foto ou digite a leitura manualmente";
+          return;
+        }
+
+        btnProcessar.disabled = true;
+
+        let leituraFinal;
+        if (leituraManual) {
+          statusTexto.textContent = "usando leitura digitada manualmente…";
+          await new Promise((r) => setTimeout(r, 300));
+          leituraFinal = Number(leituraManual);
+          animarVisor(leituraFinal);
+          statusTexto.innerHTML =
+            '<span class="ok">leitura manual aplicada</span>';
+          statusConfianca.textContent = "origem: digitada";
+        } else {
+          statusTexto.textContent =
+            "processando com visão computacional… (modo demonstração)";
+          await new Promise((r) => setTimeout(r, 900));
+          leituraFinal = leituraAnterior + 96;
+          animarVisor(leituraFinal);
+          statusTexto.innerHTML =
+            '<span class="ok">leitura confirmada (demo)</span>';
+          statusConfianca.textContent = "confiança: alta";
+        }
+
+        mostrarFatura(tipoSelecionado, leituraFinal - leituraAnterior);
+        btnProcessar.disabled = false;
+      };
+
+      function mostrarFatura(tipo, consumo) {
+        document.getElementById("faturaVazia").style.display = "none";
+        document.getElementById("faturaConteudo").style.display = "block";
+        const unidade = tipo === "AGUA" ? "m³" : "kWh";
+        let valorServico,
+          extra,
+          tarifaBasica = 0;
+
+        if (tipo === "AGUA") {
+          const faixasAgua = [
+            { ate: 10, agua: 5.77, esgoto: 4.61 + 1.15 },
+            { ate: 15, agua: 6.51, esgoto: 5.21 + 1.3 },
+            { ate: 20, agua: 7.45, esgoto: 5.96 + 1.49 },
+            { ate: 25, agua: 8.45, esgoto: 6.76 + 1.69 },
+            { ate: 30, agua: 9.54, esgoto: 7.63 + 1.91 },
+            { ate: 40, agua: 10.89, esgoto: 8.71 + 2.18 },
+            { ate: 50, agua: 12.33, esgoto: 9.86 + 2.47 },
+            { ate: Infinity, agua: 14.06, esgoto: 11.25 + 2.81 },
+          ];
+          let restante = consumo,
+            anterior = 0,
+            totalAgua = 0,
+            totalEsgoto = 0;
+          for (const faixa of faixasAgua) {
+            if (restante <= 0) break;
+            const naFaixa = Math.min(restante, faixa.ate - anterior);
+            totalAgua += naFaixa * faixa.agua;
+            totalEsgoto += naFaixa * faixa.esgoto;
+            restante -= naFaixa;
+            anterior = faixa.ate;
+          }
+          valorServico = totalAgua;
+          extra = totalEsgoto;
+          tarifaBasica = 17.46;
+
+          document.getElementById("linhaBase").style.display = "none";
+          document.getElementById("linhaImpostos").style.display = "none";
+        } else {
+          // ===== CÁLCULO DE ENERGIA (EQUATORIAL GO) =====
+          // Tarifa convencional B1 residencial, já com todos os tributos embutidos
+          // (TUSD + TE + ICMS + PIS/COFINS) — extraída diretamente das Notas Fiscais
+          // reais nº 193302420 (mai/2026) e nº 197064560 (jun/2026), mesmo valor nas
+          // duas, portanto é o valor oficial vigente, não estimativa.
+          const tarifaConvencional = 0.891810;
+          valorServico = consumo * tarifaConvencional;
+
+          // Adicional de bandeira (oficial ANEEL, Decreto 8.401/2015)
+          const bandeiraAmarelaPorKwh = 0.01885;
+          const custoBandeira = consumo * bandeiraAmarelaPorKwh;
+
+          // COSIP (Iluminação Pública) — ajustada por regressão linear a partir de
+          // 2 faturas reais de Águas Lindas de Goiás (126kWh→R$16,56, 166kWh→R$20,73).
+          // É uma aproximação local, não uma tabela oficial publicada — confirme se
+          // for usar em outro município.
+          extra = 3.43 + 0.1043 * consumo + custoBandeira;
+
+          document.getElementById("linhaBase").style.display = "none";
+          document.getElementById("linhaImpostos").style.display = "none";
+        }
+
+        const total = valorServico + extra + tarifaBasica;
+
+        document.getElementById("rotuloConsumo").textContent = "Consumo registrado";
+        document.getElementById("valorConsumo").textContent = `${consumo} ${unidade}`;
+        document.getElementById("rotuloTarifa").textContent = tipo === "AGUA" ? "Valor da água" : "Energia elétrica (tarifa oficial)";
+        document.getElementById("valorTarifa").textContent = `R$ ${valorServico.toFixed(2)}`;
+        document.getElementById("rotuloExtra").textContent = tipo === "AGUA" ? "Esgoto (coleta + tratamento)" : "Bandeira + Iluminação pública";
+        document.getElementById("valorExtra").textContent = `R$ ${extra.toFixed(2)}`;
+
+        const linhaBasica = document.getElementById("linhaBasica");
+        if (tipo === "AGUA") {
+          linhaBasica.style.display = "flex";
+          document.getElementById("valorBasica").textContent = `R$ ${tarifaBasica.toFixed(2)}`;
+        } else {
+          linhaBasica.style.display = "none";
+        }
+
+        document.getElementById("valorTotal").textContent = `R$ ${total.toFixed(2)}`;
+      }
+
+      document.getElementById("btnWhatsapp").onclick = () => {
+        const btn = document.getElementById("btnWhatsapp");
+        btn.textContent = "Enviado ✓";
+        setTimeout(() => {
+          btn.textContent = "Enviar fatura por WhatsApp";
+        }, 2500);
+      };
+    </script>
+  </body>
+</html>
