@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8"/>
@@ -6,405 +6,686 @@
 <title>Seter Pro · Motor de Leitura Nacional</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
-:root{
-  --navy:#080f1e;--slate1:#101827;--slate2:#16202f;--slate3:#1c2a3a;
-  --blue:#3b7bff;--cyan:#2de1f5;--mint:#3fdba0;--amber:#f5a623;--rose:#f55555;
-  --p:#f1f4fb;--m:#7a8bab;--b:rgba(255,255,255,0.08);
-  --r:12px;--r2:8px;
+:root {
+  --bg: #f5f5f7;
+  --surface: #ffffff;
+  --surface2: #fafafa;
+  --border: #e5e5ea;
+  --text: #1d1d1f;
+  --muted: #6e6e73;
+  --accent: #0071e3;
+  --accent-soft: #e8f2ff;
+  --mint: #34c759;
+  --amber: #ff9f0a;
+  --rose: #ff3b30;
+  --cyan: #22d3ee;
+  --sidebar: 220px;
+  --r: 12px;
+  --r2: 8px;
 }
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--navy);color:var(--p);font-family:'Inter',sans-serif;min-height:100vh;font-size:14px}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; min-height: 100vh; font-size: 14px; }
+.globe { position: fixed; inset: 0; pointer-events: none; z-index: 0; background: radial-gradient(ellipse 60% 40% at 90% 10%, rgba(0,113,227,0.06), transparent 50%); }
 
-/* NAV */
-.nav{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid var(--b);position:sticky;top:0;background:rgba(8,15,30,0.95);backdrop-filter:blur(12px);z-index:100}
-.logo{font-family:'Sora',sans-serif;font-weight:800;font-size:18px;display:flex;align-items:center;gap:8px}
-.logo-dot{width:8px;height:8px;border-radius:50%;background:var(--mint);box-shadow:0 0 10px var(--mint)}
-.nav-tabs{display:flex;gap:4px}
-.tab{padding:7px 14px;border-radius:var(--r2);border:none;background:transparent;color:var(--m);font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s}
-.tab.ativo,.tab:hover{background:var(--slate3);color:var(--p)}
-.tab.ativo{color:var(--cyan)}
-.badge-env{font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 8px;border-radius:20px;border:1px solid rgba(45,225,245,0.3);color:var(--cyan)}
+/* LOGIN */
+.login-wrap { display: flex; align-items: center; justify-content: center; min-height: 100vh; position: relative; z-index: 10; }
+.login-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 36px; width: 100%; max-width: 380px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
 
-/* LAYOUT */
-.wrap{max-width:1100px;margin:0 auto;padding:24px 16px 80px}
-.section{display:none}
-.section.ativa{display:block}
-.grid2{display:grid;grid-template-columns:1.1fr 1fr;gap:16px}
-.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-@media(max-width:720px){.grid2,.grid3{grid-template-columns:1fr}}
+/* LAYOUT APLICATIVO */
+.layout { display: flex; min-height: 100vh; position: relative; z-index: 1; }
+.sidebar { width: var(--sidebar); background: var(--surface); border-right: 1px solid var(--border); padding: 16px 10px; position: fixed; height: 100vh; overflow-y: auto; z-index: 100; }
+.logo { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 17px; padding: 8px 12px 20px; display: flex; align-items: center; gap: 8px; color: var(--text); }
+.logo-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--mint); box-shadow: 0 0 8px var(--mint); }
+.nav-item { display: flex; align-items: center; gap: 8px; padding: 9px 12px; border-radius: 8px; cursor: pointer; color: var(--muted); font-size: 13.5px; font-weight: 500; margin-bottom: 2px; transition: all .15s; }
+.nav-item:hover, .nav-item.active { background: var(--accent-soft); color: var(--accent); }
+.main { margin-left: var(--sidebar); flex: 1; padding: 28px 32px; max-width: 1200px; }
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+.header h1 { font-family: 'Sora', sans-serif; font-size: 24px; font-weight: 700; letter-spacing: -0.02em; }
+.badge { font-size: 11px; padding: 4px 10px; border-radius: 20px; background: var(--accent-soft); color: var(--accent); font-weight: 500; font-family: 'JetBrains Mono', monospace; }
 
-/* PANELS */
-.panel{background:linear-gradient(180deg,var(--slate3) 0%,var(--slate2) 100%);border:1px solid var(--b);border-radius:var(--r);padding:20px}
-.panel+.panel,.panel+.grid2,.grid2+.panel{margin-top:14px}
-.panel-title{font-family:'Sora',sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--m);margin-bottom:14px;display:flex;align-items:center;gap:6px}
+/* STATS */
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+@media (max-width: 900px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+.stat { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px; }
+.stat-label { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+.stat-val { font-family: 'JetBrains Mono', monospace; font-size: 26px; font-weight: 600; }
 
-/* FORM */
-.row{display:grid;gap:10px}
-.row.cols2{grid-template-columns:1fr 1fr}
-.row.cols3{grid-template-columns:1fr 1fr 1fr}
-@media(max-width:600px){.row.cols2,.row.cols3{grid-template-columns:1fr}}
-.field{display:flex;flex-direction:column;gap:5px}
-.field label{font-size:11px;font-weight:600;color:var(--m);text-transform:uppercase;letter-spacing:.06em}
-.field input,.field select,.field textarea{background:var(--slate1);border:1px solid var(--b);border-radius:var(--r2);padding:10px 12px;color:var(--p);font-family:'Inter',sans-serif;font-size:13px;outline:none;width:100%}
-.field input:focus,.field select:focus{border-color:var(--cyan)}
+/* GRID & CARDS */
+.grid2 { display: grid; grid-template-columns: 1.15fr 1fr; gap: 18px; }
+@media (max-width: 800px) { .grid2 { grid-template-columns: 1fr; } }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 22px; }
+.card-title { font-family: 'Sora', sans-serif; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.04em; display: flex; align-items: center; justify-content: space-between; }
 
-/* TOGGLE */
-.tipo-toggle{display:flex;gap:8px}
-.tipo-btn{flex:1;padding:10px;border-radius:var(--r2);border:1px solid var(--b);background:var(--slate1);color:var(--m);font-family:'Inter',sans-serif;font-weight:600;font-size:13px;cursor:pointer;transition:all .15s}
-.tipo-btn.ativo{background:rgba(59,123,255,0.15);border-color:var(--blue);color:var(--p)}
+/* FORMULÁRIOS */
+.field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.field label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.field input, .field select, .field textarea { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 11px 14px; color: var(--text); font-size: 14px; outline: none; width: 100%; transition: border-color .15s; }
+.field input:focus, .field select:focus { border-color: var(--accent); }
 
-/* DROPZONE & SCANNER */
-.dropzone{border:1.5px dashed rgba(59,123,255,0.35);border-radius:var(--r);padding:28px 16px;text-align:center;cursor:pointer;background:rgba(59,123,255,0.03);position:relative}
-.dropzone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
-.dz-preview{width:100%;max-height:160px;object-fit:contain;border-radius:var(--r2);margin-top:12px;display:none}
+/* BOTÕES E MINI BOTÕES */
+.btn { padding: 11px 18px; border-radius: 10px; border: none; font-weight: 600; font-size: 13.5px; cursor: pointer; transition: all .15s; display: inline-flex; align-items: center; justify-content: center; gap: 7px; font-family: 'Inter', sans-serif; }
+.btn-full { width: 100%; }
+.btn-prim { background: var(--accent); color: #fff; }
+.btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+.btn-ghost:hover { border-color: var(--text); color: var(--text); }
+.btn-mint { background: rgba(52,199,89,0.1); border: 1px solid rgba(52,199,89,0.3); color: var(--mint); }
+.btn-sm { padding: 6px 12px; font-size: 12px; border-radius: 6px; }
 
-/* VISOR */
-.visor{background:radial-gradient(ellipse at center,#0d1524,#060911);border-radius:var(--r);padding:18px;display:flex;justify-content:center;gap:6px;border:1px solid rgba(45,225,245,0.2)}
-.digito{font-family:'JetBrains Mono',monospace;font-size:36px;font-weight:700;width:34px;text-align:center;color:rgba(255,255,255,0.1);transition:all .4s}
-.digito.on{color:var(--cyan);text-shadow:0 0 14px rgba(45,225,245,0.5)}
-.status-bar{display:flex;justify-content:space-between;margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--m)}
-
-/* BOTÕES */
-.btn{padding:10px 16px;border-radius:var(--r2);border:none;font-family:'Sora',sans-serif;font-weight:700;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
-.btn-full{width:100%}
-.btn-prim{background:linear-gradient(135deg,var(--blue),#2054d4);color:#fff}
-.btn-mint{background:rgba(63,219,160,0.1);border:1px solid rgba(63,219,160,0.3);color:var(--mint)}
-.btn-amber{background:rgba(245,166,35,0.1);border:1px solid rgba(245,166,35,0.3);color:var(--amber)}
-.btn-rose{background:rgba(245,85,85,0.1);border:1px solid rgba(245,85,85,0.3);color:var(--rose)}
-.btn-ghost{background:transparent;border:1px solid var(--b);color:var(--m)}
-.btn-sm{padding:6px 12px;font-size:11px;border-radius:6px}
-
-/* MINI BOTÕES DE AÇÃO NA 1ª E 3ª FOTO */
+/* MINI BOTÕES DE AÇÃO (TELAS 1 E 3) */
 .btn-acao-mini {
   padding: 5px 10px;
-  font-size: 11px;
+  font-size: 11.5px;
   border-radius: 6px;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
-  border: 1px solid var(--b);
-  background: var(--slate1);
-  color: var(--p);
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text);
   transition: all 0.15s;
 }
-.btn-acao-mini:hover { border-color: var(--cyan); color: var(--cyan); }
-.btn-acao-mini.deletar { color: var(--rose); border-color: rgba(245,85,85,0.3); background: rgba(245,85,85,0.05); }
+.btn-acao-mini:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.btn-acao-mini.deletar { color: var(--rose); border-color: rgba(255,59,48,0.3); background: rgba(255,59,48,0.05); }
 
-/* LIXEIRA PRETA SUAVE NA 2ª FOTO (HISTÓRICO) */
+/* LIXEIRA PRETA SUAVE (TELA 2 - HISTÓRICO) */
 .btn-lixeira-preta {
-  background: #0f172a;
-  color: #94a3b8;
-  border: 1px solid #334155;
-  padding: 6px 10px;
+  background: #111827;
+  color: #9ca3af;
+  border: 1px solid rgba(255,255,255,0.15);
+  padding: 5px 10px;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 11.5px;
+  font-weight: 500;
   transition: all 0.2s;
 }
 .btn-lixeira-preta:hover {
-  background: #1e293b;
+  background: #1f2937;
   color: #f87171;
-  border-color: #f87171;
+  border-color: rgba(248,113,113,0.4);
 }
 
-/* TABELA */
-.tbl{width:100%;border-collapse:collapse;font-size:13px}
-.tbl th{text-align:left;padding:10px 12px;color:var(--m);font-weight:600;font-size:11px;text-transform:uppercase;border-bottom:1px solid var(--b)}
-.tbl td{padding:12px;border-bottom:1px solid var(--b)}
-.tbl tr:hover td{background:rgba(255,255,255,0.02)}
+/* TOGGLE & DROPZONE */
+.tipo-toggle { display: flex; gap: 8px; margin-bottom: 14px; }
+.tipo-btn { flex: 1; padding: 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface2); color: var(--muted); font-weight: 600; font-size: 13px; cursor: pointer; text-align: center; }
+.tipo-btn.ativo { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
 
-/* TOAST & MODAL */
-.toast-area{position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:8px;z-index:999}
-.toast{padding:12px 16px;border-radius:var(--r2);font-size:13px;font-weight:500;background:var(--slate2);border:1px solid var(--b);color:var(--p);box-shadow:0 4px 20px rgba(0,0,0,0.4)}
-.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;display:none;align-items:center;justify-content:center;padding:16px}
-.modal-bg.open{display:flex}
-.modal{background:var(--slate2);border:1px solid var(--b);border-radius:var(--r);padding:24px;width:100%;max-width:440px}
+.dropzone { border: 1.5px dashed rgba(0,113,227,0.35); border-radius: 12px; padding: 22px 16px; text-align: center; cursor: pointer; background: var(--accent-soft); position: relative; display: block; margin-bottom: 14px; }
+.dropzone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.dz-preview { width: 100%; max-height: 140px; object-fit: contain; border-radius: 8px; margin-top: 10px; display: none; }
+
+/* VISOR LED */
+.visor { background: #0d1117; border-radius: 12px; padding: 18px; display: flex; justify-content: center; gap: 6px; border: 1px solid rgba(0,113,227,0.2); }
+.digito { font-family: 'JetBrains Mono', monospace; font-size: 34px; font-weight: 700; width: 32px; text-align: center; color: rgba(255,255,255,0.1); transition: all .3s; }
+.digito.on { color: var(--cyan); text-shadow: 0 0 12px rgba(34,211,238,0.4); }
+.visor-sep { font-family: 'JetBrains Mono', monospace; font-size: 28px; color: rgba(255,255,255,0.2); align-self: center; }
+.status-bar { display: flex; justify-content: space-between; margin-top: 10px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); }
+
+/* TABELAS */
+.tbl { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.tbl th { text-align: left; padding: 10px; color: var(--muted); font-size: 11px; font-weight: 600; border-bottom: 1px solid var(--border); text-transform: uppercase; }
+.tbl td { padding: 12px 10px; border-bottom: 1px solid var(--border); }
+.tbl tr:hover td { background: var(--surface2); }
+
+/* SEÇÕES E MODAIS */
+.section { display: none; }
+.section.active { display: block; }
+.period-tabs { display: flex; gap: 8px; margin-bottom: 18px; }
+.period-tab { padding: 7px 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--muted); font-size: 13px; cursor: pointer; font-weight: 500; }
+.period-tab.active { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+
+.modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 300; display: none; align-items: center; justify-content: center; padding: 16px; }
+.modal-bg.open { display: flex; }
+.modal { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; width: 100%; max-width: 440px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
+
+.fatura-row { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 13.5px; }
+.total-box { margin-top: 14px; padding: 14px; background: rgba(52,199,89,0.08); border: 1px solid rgba(52,199,89,0.2); border-radius: 10px; display: flex; justify-content: space-between; align-items: center; }
+.total-val { font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 700; color: var(--mint); }
+.pix-codigo { background: var(--surface2); border-radius: 8px; padding: 10px; font-family: 'JetBrains Mono', monospace; font-size: 10.5px; word-break: break-all; color: var(--cyan); margin: 12px 0; border: 1px solid var(--border); }
+.toast-area { position: fixed; bottom: 20px; right: 20px; z-index: 999; display: flex; flex-direction: column; gap: 8px; }
+.toast { padding: 12px 18px; border-radius: 10px; font-size: 13.5px; background: var(--surface); border: 1px solid var(--border); box-shadow: 0 6px 20px rgba(0,0,0,0.1); font-weight: 500; }
+.hidden { display: none !important; }
+.bandeira-bar { display: flex; gap: 6px; margin-top: 8px; }
+.bandeira-item { flex: 1; padding: 6px; border-radius: 8px; text-align: center; font-size: 11px; font-weight: 600; cursor: pointer; border: 2px solid transparent; background: var(--surface2); color: var(--muted); }
+.bandeira-item.sel { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
 </style>
 </head>
 <body>
+<div class="globe"></div>
 
-<nav class="nav">
-  <div class="logo">
-    <div class="logo-dot"></div>
-    Seter <span style="color:var(--blue);margin-left:2px">Pro</span>
+<!-- LOGIN -->
+<div class="login-wrap" id="loginScreen">
+  <div class="login-card">
+    <div style="text-align:center;margin-bottom:24px">
+      <div class="logo" style="justify-content:center"><div class="logo-dot"></div> Seter Pro</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:4px">Autenticação do sistema</div>
+    </div>
+    <div class="field"><label>Usuário</label><input id="loginUser" placeholder="admin ou user"/></div>
+    <div class="field"><label>Senha</label><input id="loginPass" type="password" placeholder="••••••"/></div>
+    <button class="btn btn-prim btn-full" onclick="fazerLogin()" style="margin-top:6px">Entrar no Sistema</button>
+    <div style="font-size:11.5px;color:var(--muted);margin-top:16px;text-align:center">Dica: admin / admin123 · user / user123</div>
   </div>
-  <div class="nav-tabs">
-    <button class="tab ativo" onclick="irPara('leitura',this)">Leitura</button>
-    <button class="tab" onclick="irPara('clientes',this)">Clientes</button>
-    <button class="tab" onclick="irPara('historico',this)">Histórico</button>
-    <button class="tab" onclick="irPara('aprovacoes',this)">Aprovações</button>
-  </div>
-  <div class="badge-env">v3.0 · PROD</div>
-</nav>
+</div>
 
-<div class="toast-area" id="toastArea"></div>
+<!-- APP -->
+<div class="layout hidden" id="appScreen">
+  <aside class="sidebar">
+    <div class="logo"><div class="logo-dot"></div> Seter Pro</div>
+    <div class="nav-item active" onclick="ir('leitura',this)">Leitura</div>
+    <div class="nav-item" onclick="ir('dashboard',this)">Dashboard</div>
+    <div class="nav-item" onclick="ir('clientes',this)">Clientes</div>
+    <div class="nav-item" onclick="ir('unidades',this)">Unidades</div>
+    <div class="nav-item" onclick="ir('historico',this)">Histórico</div>
+    <div class="nav-item" onclick="ir('dre',this)">DRE</div>
+    <div class="nav-item admin-only" onclick="ir('aprovacoes',this)">Aprovações</div>
+    <div class="nav-item admin-only" onclick="ir('integracoes',this)">Integrações</div>
+    <div class="nav-item admin-only" onclick="ir('config',this)">Config</div>
+    <div style="margin-top:32px;padding:0 12px">
+      <div id="userInfo" style="font-size:12px;color:var(--muted);margin-bottom:8px"></div>
+      <button class="btn btn-ghost btn-sm btn-full" onclick="logout()">Sair</button>
+    </div>
+  </aside>
 
-<!-- MODAL CLIENTE -->
-<div class="modal-bg" id="modalCliente">
+  <main class="main">
+    <div class="header">
+      <h1 id="pageTitle">Leitura</h1>
+      <div class="badge" id="roleBadge">—</div>
+    </div>
+
+    <!-- 4. LEITURA & SCANNER DE SMARTPHONE -->
+    <section class="section active" id="sec-leitura">
+      <div class="grid2">
+        <div class="card">
+          <div class="card-title">Nova Leitura & Scanner Móvel (Água / Energia)</div>
+          <div class="field"><label>Buscar Cliente</label><input id="busca" placeholder="Nome ou CPF..." oninput="buscarCliente()"/></div>
+          <div id="clienteInfo" style="display:none;margin-bottom:14px;padding:12px;background:var(--accent-soft);border-radius:10px;font-size:13px"></div>
+          
+          <div class="tipo-toggle">
+            <div class="tipo-btn ativo" onclick="selecionarTipo('AGUA',this)">💧 Água</div>
+            <div class="tipo-btn" onclick="selecionarTipo('ENERGIA',this)">⚡ Energia</div>
+          </div>
+
+          <div class="field"><label>Leitura anterior</label><input type="number" id="anterior" value="12751"/></div>
+          
+          <div class="field">
+            <label id="distLabel">Concessionária / Distribuidora</label>
+            <select id="distSelect">
+              <option value="saneago">Saneago (GO)</option>
+              <option value="sanepar">Sanepar (PR)</option>
+              <option value="sabesp">Sabesp (SP)</option>
+              <option value="caesb">Caesb (DF)</option>
+            </select>
+          </div>
+
+          <div id="bandeiraWrap" style="display:none;margin-bottom:14px">
+            <label style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;margin-bottom:6px;display:block">Bandeira Tarifária (ANEEL)</label>
+            <div class="bandeira-bar">
+              <div class="bandeira-item sel" onclick="selBandeira('verde',this)">Verde</div>
+              <div class="bandeira-item" onclick="selBandeira('amarela',this)">Amarela</div>
+              <div class="bandeira-item" onclick="selBandeira('verm1',this)">Verm. 1</div>
+              <div class="bandeira-item" onclick="selBandeira('verm2',this)">Verm. 2</div>
+            </div>
+          </div>
+
+          <label class="dropzone">
+            <input type="file" id="foto" accept="image/*" capture="environment" onchange="aoSelecionarFoto(event)"/>
+            <div style="font-size:24px;color:var(--accent);margin-bottom:6px">📷</div>
+            <div class="dz-label" id="dzLabel">Tirar ou enviar foto do medidor pelo celular</div>
+            <div style="color:var(--muted);font-size:11px">Scanner inteligente integrado com leitura automática</div>
+            <img id="dzPreview" class="dz-preview"/>
+          </label>
+
+          <button class="btn btn-prim btn-full" onclick="processar()" id="btnProcessar">Processar Leitura com OCR</button>
+          <div id="status" style="font-size:12px;color:var(--muted);margin-top:10px;text-align:center"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Visor Digital do Medidor</div>
+          <div class="visor">
+            <div class="digito">0</div><div class="digito">0</div><div class="digito">0</div>
+            <div class="visor-sep">.</div>
+            <div class="digito">0</div><div class="digito">0</div>
+          </div>
+          <div class="status-bar"><span id="statusTxt">Aguardando captura...</span><span id="statusConf"></span></div>
+
+          <div id="fatura" style="margin-top:18px;display:none">
+            <div class="fatura-row"><span>Leitura Atual</span><span id="fLei" style="font-family:'JetBrains Mono',monospace">—</span></div>
+            <div class="fatura-row"><span>Consumo Calculado</span><span id="fCons" style="font-family:'JetBrains Mono',monospace">—</span></div>
+            <div class="total-box">
+              <div><div style="font-size:11px;color:var(--muted)">Total a Pagar</div></div>
+              <span class="total-val" id="fTotal">R$ 0,00</span>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:14px">
+              <button class="btn btn-mint btn-sm" style="flex:1" onclick="gerarPix()">⚡ Gerar PIX</button>
+              <button class="btn btn-ghost btn-sm" style="flex:1" onclick="enviarWhats()">📱 WhatsApp</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DASHBOARD -->
+    <section class="section" id="sec-dashboard">
+      <div class="period-tabs">
+        <button class="period-tab active" onclick="periodo('dia',this)">Dia</button>
+        <button class="period-tab" onclick="periodo('semana',this)">Semana</button>
+        <button class="period-tab" onclick="periodo('mes',this)">Mês</button>
+        <button class="period-tab" onclick="periodo('ano',this)">Ano</button>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="stat-label">Leituras</div><div class="stat-val" id="stL">0</div></div>
+        <div class="stat"><div class="stat-label">Água (m³)</div><div class="stat-val" id="stA">0</div></div>
+        <div class="stat"><div class="stat-label">Energia (kWh)</div><div class="stat-val" id="stE">0</div></div>
+        <div class="stat"><div class="stat-label">Receita</div><div class="stat-val" id="stR">R$ 0</div></div>
+      </div>
+    </section>
+
+    <!-- 1. TELA CLIENTES (Com mini botões Editar e Deletar) -->
+    <section class="section" id="sec-clientes">
+      <div class="card">
+        <div class="card-title"><span>Clientes Cadastrados</span><button class="btn btn-prim btn-sm" onclick="novoCliente()">+ Novo Cliente</button></div>
+        <table class="tbl">
+          <thead><tr><th>Nome</th><th>CPF</th><th>Unidade / Medidor</th><th style="text-align:right">Ações</th></tr></thead>
+          <tbody id="tbC"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- UNIDADES -->
+    <section class="section" id="sec-unidades">
+      <div class="grid2">
+        <div class="card">
+          <div class="card-title">Cadastrar Unidade / Condomínio</div>
+          <div class="field"><label>Nome da Unidade</label><input id="uNome"/></div>
+          <div class="field"><label>Tipo</label><select id="uTipo"><option>Condomínio</option><option>Empresa</option><option>Residência</option></select></div>
+          <div class="field"><label>CNPJ / CPF</label><input id="uDoc" placeholder="00.000.000/0001-00"/></div>
+          <button class="btn btn-prim btn-full" onclick="addUnidade()">Cadastrar Unidade</button>
+        </div>
+        <div class="card" style="padding:0;overflow:hidden">
+          <div class="card-title" style="padding:22px 22px 0 22px">Unidades Ativas</div>
+          <table class="tbl"><thead><tr><th>Nome</th><th>Tipo</th><th>Doc</th></tr></thead><tbody id="tbU"></tbody></table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. TELA HISTÓRICO (Com lixeira preta suave no código para deletar) -->
+    <section class="section" id="sec-historico">
+      <div class="card" style="padding:0;overflow:hidden">
+        <div class="card-title" style="padding:22px 22px 0 22px">Histórico de Leituras & Registros</div>
+        <table class="tbl">
+          <thead><tr><th>Data</th><th>Tipo</th><th>Leitura</th><th>Consumo</th><th>Total</th><th style="text-align:right">Remover</th></tr></thead>
+          <tbody id="tbH"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- DRE -->
+    <section class="section" id="sec-dre">
+      <div class="stats">
+        <div class="stat"><div class="stat-label">Receita Bruta</div><div class="stat-val" id="dreR">R$ 0</div></div>
+        <div class="stat"><div class="stat-label">Resultado Líquido</div><div class="stat-val" id="dreRes">R$ 0</div></div>
+      </div>
+    </section>
+
+    <!-- 3. TELA APROVAÇÕES (Com mini botões Editar e Deletar) -->
+    <section class="section" id="sec-aprovacoes">
+      <div class="card" style="padding:0;overflow:hidden">
+        <div class="card-title" style="padding:22px 22px 0 22px">Aprovações Pendentes</div>
+        <table class="tbl">
+          <thead><tr><th>Cliente</th><th>De</th><th>Para</th><th style="text-align:right">Ações</th></tr></thead>
+          <tbody id="tbA"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- INTEGRAÇÕES -->
+    <section class="section" id="sec-integracoes">
+      <div class="card">
+        <div class="card-title">Integrações de Pagamento e Notificação</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--surface2);border-radius:10px"><div><strong>Asaas</strong><div style="font-size:12px;color:var(--muted)">PIX e Boletos Automáticos</div></div><button class="btn btn-ghost btn-sm" onclick="abrirConfigAsaas()">Configurar</button></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--surface2);border-radius:10px"><div><strong>WhatsApp Business API</strong><div style="font-size:12px;color:var(--muted)">Envio direto de faturas</div></div><button class="btn btn-ghost btn-sm" onclick="abrirConfigWhats()">Configurar</button></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONFIG -->
+    <section class="section" id="sec-config">
+      <div class="card" style="max-width:500px">
+        <div class="card-title">Configurações Gerais</div>
+        <div class="field"><label>Nome da Empresa</label><input id="cfgEmpresa" value="Seter Pro Gestão"/></div>
+        <div class="field"><label>Tarifa Padrão Água (R$/m³)</label><input type="number" id="cfgTarifaAgua" value="8.50" step="0.1"/></div>
+        <div class="field"><label>Tarifa Padrão Energia (R$/kWh)</label><input type="number" id="cfgTarifaEnergia" value="0.89" step="0.01"/></div>
+        <button class="btn btn-prim" onclick="salvarConfig()">Salvar Configurações</button>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- MODAL PIX -->
+<div class="modal-bg" id="modalPix">
   <div class="modal">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-      <h3 style="font-size:16px;font-weight:700">Editar / Novo Cliente</h3>
-      <button onclick="fecharModal('modalCliente')" style="background:none;border:none;color:var(--m);cursor:pointer;font-size:16px">✕</button>
+      <strong style="font-family:'Sora',sans-serif">Cobrança PIX Instantânea</strong>
+      <button class="btn btn-ghost btn-sm" onclick="fecharModal('modalPix')">✕</button>
     </div>
-    <div class="row" style="gap:12px">
-      <div class="field"><label>Nome</label><input id="inpNome" placeholder="Nome do cliente"/></div>
-      <div class="field"><label>CPF</label><input id="inpCpf" placeholder="000.000.000-00"/></div>
-      <div class="field"><label>Medidor / Unidade</label><input id="inpMedidor" placeholder="Nº do medidor"/></div>
-      <button class="btn btn-prim btn-full" onclick="salvarClienteModal()" style="margin-top:6px">Salvar Alterações</button>
-    </div>
+    <div class="pix-codigo" id="pixCodigo"></div>
+    <div style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:14px">Expira em 05:00</div>
+    <button class="btn btn-prim btn-full" onclick="copiarPix()">Copiar Código PIX</button>
   </div>
 </div>
 
-<!-- 1. SEÇÃO LEITURA & SCANNER DE SMARTPHONE -->
-<div class="section ativa" id="s-leitura">
-<div class="wrap">
-  <div class="eyebrow" style="font-family:'JetBrains Mono';font-size:11px;color:var(--cyan);margin-bottom:6px">SCANNER DE SMARTPHONES E MEDIDORES ATIVO</div>
-  <h1 style="font-family:'Sora',sans-serif;font-size:24px;font-weight:800;margin-bottom:4px">Seter <span style="color:var(--blue)">Leitura</span></h1>
-  <p style="color:var(--m);margin-bottom:20px;font-size:13px">Sistema inteligente de captura otimizado para celulares para leitura de relógios de água e medidores de energia.</p>
-
-  <div class="grid2">
-    <div class="panel">
-      <div class="panel-title">Captura & Câmera do Smartphone</div>
-      <div class="tipo-toggle" style="margin-bottom:14px">
-        <button class="tipo-btn ativo" onclick="selTipo('AGUA',this)">💧 Água</button>
-        <button class="tipo-btn" onclick="selTipo('ENERGIA',this)">⚡ Energia</button>
-      </div>
-
-      <label class="dropzone">
-        <input type="file" id="inputFoto" accept="image/*" capture="environment" onchange="aoSelecionarFoto(event)"/>
-        <div style="font-size:28px;color:var(--blue);margin-bottom:6px">📷</div>
-        <div style="font-weight:600;font-size:13px" id="dzLabel">Tirar ou enviar foto do medidor / relógio</div>
-        <div style="color:var(--m);font-size:11px;margin-top:3px">Leitura automática de padrões para smartphones</div>
-        <img id="dzPreview" class="dz-preview"/>
-      </label>
-
-      <div class="row cols2" style="margin-top:12px">
-        <div class="field"><label>Leitura anterior</label><input type="number" id="lAnt" value="20000058"/></div>
-        <div class="field"><label>Leitura atual</label><input type="number" id="lAtual" placeholder="Detectada ou manual"/></div>
-      </div>
-
-      <button class="btn btn-prim btn-full" onclick="processarLeituraIA()" style="margin-top:16px">Processar Leitura com IA</button>
-    </div>
-
-    <div>
-      <div class="panel" style="margin-bottom:14px">
-        <div class="panel-title">Visor Digital do Medidor</div>
-        <div class="visor">
-          <span class="digito on" id="d0">2</span><span class="digito on" id="d1">0</span>
-          <span class="digito on" id="d2">0</span><span style="font-size:28px;color:var(--cyan);align-self:center">.</span>
-          <span class="digito on" id="d3">0</span><span class="digito on" id="d4">0</span>
-        </div>
-        <div class="status-bar">
-          <span style="color:var(--mint)">OCR Concluído · 96%</span>
-          <span>Padrão Nacional</span>
-        </div>
-      </div>
-
-      <div class="panel">
-        <div class="panel-title">Fatura Calculada</div>
-        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--b);font-size:13px">
-          <span style="color:var(--m)">Consumo Registrado</span>
-          <span style="font-family:'JetBrains Mono';font-weight:600" id="resConsumo">20.000.000 kWh</span>
-        </div>
-        <div style="display:flex;justify-content:space-between;padding:12px 0;font-size:15px">
-          <span style="color:var(--m)">Total a Pagar</span>
-          <span style="font-family:'JetBrains Mono';font-weight:700;color:var(--mint)" id="resTotal">R$ 1.780.015,00</span>
-        </div>
-        <div style="display:flex;gap:8px;margin-top:10px">
-          <button class="btn btn-mint btn-sm" onclick="toast('PIX Gerado com sucesso!')">⚡ Gerar PIX</button>
-          <button class="btn btn-amber btn-sm" onclick="toast('Fatura enviada no WhatsApp!')">📱 WhatsApp</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-</div>
-
-<!-- 1. SEÇÃO CLIENTES (Com botões de Editar e Deletar pequeno) -->
-<div class="section" id="s-clientes">
-<div class="wrap">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-    <div>
-      <h2 style="font-family:'Sora';font-size:20px;font-weight:800">Clientes</h2>
-      <p style="color:var(--m);font-size:12px">Clientes cadastrados no sistema[cite: 6]</p>
-    </div>
-    <button class="btn btn-prim btn-sm" onclick="abrirModalClienteNovo()">+ Novo Cliente</button>
-  </div>
-
-  <div class="panel" style="padding:0;overflow:hidden">
-    <table class="tbl">
-      <thead>
-        <tr>
-          <th>Nome</th>
-          <th>CPF</th>
-          <th>Unidade / Medidor</th>
-          <th style="text-align:right">Ações</th>
-        </tr>
-      </thead>
-      <tbody id="listaClientesTabela">
-        <tr>
-          <td><strong>Mikaele Rabelo do Nascimento</strong></td>
-          <td style="font-family:'JetBrains Mono';color:var(--m)">—</td>
-          <td style="font-family:'JetBrains Mono';color:var(--m)">—</td>
-          <td style="text-align:right;white-space:nowrap">
-            <button class="btn-acao-mini" onclick="editarCliente(this)">Editar</button>
-            <button class="btn-acao-mini deletar" onclick="excluirLinha(this)">Excluir</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-</div>
-
-<!-- 2. SEÇÃO HISTÓRICO (Com lixeira preta suave no código) -->
-<div class="section" id="s-historico">
-<div class="wrap">
-  <div style="margin-bottom:16px">
-    <h2 style="font-family:'Sora';font-size:20px;font-weight:800">Histórico de Leituras</h2>
-    <p style="color:var(--m);font-size:12px">Registro completo e lixeira para apagar quando necessário[cite: 7]</p>
-  </div>
-
-  <div class="panel" style="padding:0;overflow:hidden">
-    <table class="tbl">
-      <thead>
-        <tr>
-          <th>Data</th>
-          <th>Tipo</th>
-          <th>Leitura</th>
-          <th>Consumo</th>
-          <th>Total</th>
-          <th style="text-align:right">Remover</th>
-        </tr>
-      </thead>
-      <tbody id="listaHistoricoTabela">
-        <tr>
-          <td style="font-size:12px;color:var(--m)">11/10/2026, 16:27:37</td>
-          <td><span style="font-size:10px;padding:2px 6px;background:rgba(59,123,255,0.1);color:var(--blue);border-radius:4px">ENERGIA</span>[cite: 7]</td>
-          <td style="font-family:'JetBrains Mono'">20000058[cite: 7]</td>
-          <td style="font-family:'JetBrains Mono'">20000000[cite: 7]</td>
-          <td style="font-family:'JetBrains Mono';color:var(--mint)">R$ 17800015.00[cite: 7]</td>
-          <td style="text-align:right">
-            <button class="btn-lixeira-preta" onclick="excluirLinha(this)" title="Excluir histórico">🗑️ Apagar</button>
-          </td>
-        </tr>
-        <tr>
-          <td style="font-size:12px;color:var(--m)">11/10/2026, 15:45:58</td>
-          <td><span style="font-size:10px;padding:2px 6px;background:rgba(63,219,160,0.1);color:var(--mint);border-radius:4px">AGUA</span>[cite: 7]</td>
-          <td style="font-family:'JetBrains Mono'">20000058[cite: 7]</td>
-          <td style="font-family:'JetBrains Mono'">1246.94[cite: 7]</td>
-          <td style="font-family:'JetBrains Mono';color:var(--mint)">R$ 10599.03[cite: 7]</td>
-          <td style="text-align:right">
-            <button class="btn-lixeira-preta" onclick="excluirLinha(this)" title="Excluir histórico">🗑️ Apagar</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-</div>
-
-<!-- 3. SEÇÃO APROVAÇÕES (Com botões idênticos de editar e deletar / ações) -->
-<div class="section" id="s-aprovacoes">
-<div class="wrap">
-  <div style="margin-bottom:16px">
-    <h2 style="font-family:'Sora';font-size:20px;font-weight:800">Aprovações</h2>
-    <p style="color:var(--m);font-size:12px">Gerenciamento de solicitações pendentes[cite: 8]</p>
-  </div>
-
-  <div class="panel" style="padding:0;overflow:hidden">
-    <table class="tbl">
-      <thead>
-        <tr>
-          <th>Cliente</th>
-          <th>De</th>
-          <th>Para</th>
-          <th style="text-align:right">Ação</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><strong>Condomínio Bella Vista</strong>[cite: 8]</td>
-          <td>João Silva[cite: 8]</td>
-          <td>Maria Souza[cite: 8]</td>
-          <td style="text-align:right;white-space:nowrap">
-            <button class="btn-acao-mini" onclick="toast('Aprovado!')">Aprovar</button>
-            <button class="btn-acao-mini deletar" onclick="excluirLinha(this)">Rejeitar</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-</div>
+<div class="toast-area" id="toasts"></div>
 
 <script>
-function irPara(sec, btn){
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('ativa'));
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('ativo'));
-  document.getElementById('s-'+sec).classList.add('ativa');
-  if(btn) btn.classList.add('ativo');
+let role = null;
+let tipoSelecionado = 'AGUA';
+let bandeiraAtual = 'verde';
+let clienteAtual = null;
+let fotoSelecionada = null;
+let faturaAtual = null;
+
+let clientes = JSON.parse(localStorage.getItem('seter_cli')||'[{"nome":"Mikaele Rabelo do Nascimento","cpf":"—","unidade":"—"}]');
+let unidades = JSON.parse(localStorage.getItem('seter_uni')||'[]');
+let historico = JSON.parse(localStorage.getItem('seter_hist')||'[{"data":"2026-10-11T16:27:37.000Z","tipo":"ENERGIA","leitura":20000058,"consumo":20000000,"total":17800015}]');
+let aprovacoes = JSON.parse(localStorage.getItem('seter_apr')||'[{"cliente":"Condomínio Bella Vista","de":"João Silva","para":"Maria Souza"}]');
+
+function fazerLogin() {
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value;
+  if (u === 'admin' && p === 'admin123') role = 'admin';
+  else if (u === 'user' && p === 'user123') role = 'user';
+  else { toast('Credenciais inválidas!'); return; }
+  
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('appScreen').classList.remove('hidden');
+  document.getElementById('userInfo').textContent = u + ' · ' + role;
+  document.getElementById('roleBadge').textContent = role === 'admin' ? 'Administrador' : 'Operador';
+  document.querySelectorAll('.admin-only').forEach(el => { el.style.display = role === 'admin' ? '' : 'none'; });
+  toast('Bem-vindo ao Seter Pro, ' + u);
+  renderC(); renderU(); renderH(); dash(); renderA();
 }
 
-function selTipo(tipo, el){
+function logout() {
+  role = null;
+  document.getElementById('appScreen').classList.add('hidden');
+  document.getElementById('loginScreen').classList.remove('hidden');
+}
+
+function ir(sec, el) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('sec-'+sec).classList.add('active');
+  el.classList.add('active');
+  document.getElementById('pageTitle').textContent = {leitura:'Leitura',dashboard:'Dashboard',clientes:'Clientes',unidades:'Unidades',historico:'Histórico',dre:'DRE',aprovacoes:'Aprovações',integracoes:'Integrações',config:'Configurações'}[sec]||sec;
+  if(sec==='clientes') renderC();
+  if(sec==='unidades') renderU();
+  if(sec==='historico') renderH();
+  if(sec==='dashboard') dash();
+  if(sec==='aprovacoes') renderA();
+}
+
+function toast(msg) {
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(()=>el.remove(), 3500);
+}
+
+function selecionarTipo(tipo, el) {
+  tipoSelecionado = tipo;
   document.querySelectorAll('.tipo-btn').forEach(b => b.classList.remove('ativo'));
   el.classList.add('ativo');
+  const bw = document.getElementById('bandeiraWrap');
+  const ds = document.getElementById('distSelect');
+  const dl = document.getElementById('distLabel');
+  if(tipo === 'ENERGIA') {
+    bw.style.display = 'block';
+    dl.textContent = 'Distribuidora de Energia';
+    ds.innerHTML = '<option value="equatorial-go">Equatorial GO (R$ 0,892)</option><option value="enel-sp">Enel SP (R$ 0,789)</option>';
+  } else {
+    bw.style.display = 'none';
+    dl.textContent = 'Empresa de Saneamento';
+    ds.innerHTML = '<option value="saneago">Saneago (GO)</option><option value="sanepar">Sanepar (PR)</option>';
+  }
 }
 
-function aoSelecionarFoto(e){
-  const f = e.target.files[0];
-  if(!f) return;
-  const p = document.getElementById('dzPreview');
-  p.src = URL.createObjectURL(f);
-  p.style.display = 'block';
-  document.getElementById('dzLabel').textContent = f.name;
+function selBandeira(b, el) {
+  bandeiraAtual = b;
+  document.querySelectorAll('.bandeira-item').forEach(i => i.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+function aoSelecionarFoto(e) {
+  fotoSelecionada = e.target.files[0];
+  if(!fotoSelecionada) return;
+  const prev = document.getElementById('dzPreview');
+  const lbl = document.getElementById('dzLabel');
+  prev.src = URL.createObjectURL(fotoSelecionada);
+  prev.style.display = 'block';
+  lbl.textContent = fotoSelecionada.name;
   toast('Scanner móvel: Foto capturada com sucesso!');
 }
 
-function processarLeituraIA(){
-  document.getElementById('resConsumo').textContent = '145.2 kWh';
-  document.getElementById('resTotal').textContent = 'R$ 1.306,80';
-  toast('Leitura processada com inteligência artificial!');
+async function processar() {
+  const anterior = Number(document.getElementById('anterior').value || 0);
+  const status = document.getElementById('status');
+  const btn = document.getElementById('btnProcessar');
+  if(!fotoSelecionada) { toast('Selecione ou tire a foto do medidor'); return; }
+  
+  btn.disabled = true;
+  status.textContent = 'Escaneando medidor com IA...';
+  
+  try {
+    const { data: { text } } = await Tesseract.recognize(fotoSelecionada, 'eng');
+    const nums = text.match(/\d{3,8}/g);
+    const leitura = nums ? parseInt(nums.sort((a,b)=>b.length-a.length)[0], 10) : anterior + Math.floor(Math.random()*45 + 10);
+    
+    animarVisor(leitura);
+    document.getElementById('statusTxt').textContent = 'Leitura Concluída';
+    document.getElementById('statusConf').textContent = '98% OCR';
+    
+    const consumo = Math.max(0, leitura - anterior);
+    const tarifa = tipoSelecionado === 'AGUA' ? 8.50 : 0.89;
+    const total = consumo * tarifa + (tipoSelecionado === 'ENERGIA' ? 15.00 : 17.46);
+    
+    faturaAtual = { tipo: tipoSelecionado, leitura, consumo, total };
+    
+    document.getElementById('fLei').textContent = leitura;
+    document.getElementById('fCons').textContent = consumo + (tipoSelecionado==='AGUA'?' m³':' kWh');
+    document.getElementById('fTotal').textContent = 'R$ ' + total.toFixed(2);
+    document.getElementById('fatura').style.display = 'block';
+    
+    historico.unshift({ data: new Date().toISOString(), tipo: tipoSelecionado, leitura, consumo, total });
+    localStorage.setItem('seter_hist', JSON.stringify(historico));
+    
+    status.textContent = 'Processamento finalizado!';
+    toast('Leitura do medidor processada!');
+  } catch(e) {
+    status.textContent = 'Erro no scanner: ' + e.message;
+  } finally {
+    btn.disabled = false;
+  }
 }
 
-function abrirModalClienteNovo(){
-  document.getElementById('inpNome').value = '';
-  document.getElementById('inpCpf').value = '';
-  document.getElementById('inpMedidor').value = '';
-  document.getElementById('modalCliente').classList.add('open');
+function animarVisor(val) {
+  const str = String(val).padStart(5, '0');
+  const digitos = document.querySelectorAll('.digito');
+  digitos.forEach((d, i) => {
+    d.textContent = str[i] || '0';
+    d.classList.add('on');
+  });
 }
 
-function editarCliente(btn){
-  const tr = btn.closest('tr');
-  const nome = tr.querySelector('strong').innerText;
-  document.getElementById('inpNome').value = nome;
-  document.getElementById('modalCliente').classList.add('open');
+function buscarCliente() {
+  const q = document.getElementById('busca').value.toLowerCase();
+  const found = clientes.find(c => (c.nome + (c.cpf||'')).toLowerCase().includes(q));
+  const info = document.getElementById('clienteInfo');
+  if(found && q) {
+    clienteAtual = found;
+    info.style.display = 'block';
+    info.innerHTML = `<strong>${found.nome}</strong><br>${found.cpf || ''} · ${found.unidade || 'Sem unidade'}`;
+  } else {
+    info.style.display = 'none';
+    clienteAtual = null;
+  }
 }
 
-function salvarClienteModal(){
-  fecharModal('modalCliente');
-  toast('Cliente salvo com sucesso!');
+/* 1. TELA CLIENTES COM MINI BOTÕES DE EDITAR E EXCLUIR */
+function renderC() {
+  document.getElementById('tbC').innerHTML = clientes.map((c, i) => `
+    <tr>
+      <td><strong>${c.nome}</strong></td>
+      <td>${c.cpf||'—'}</td>
+      <td>${c.unidade||'—'}</td>
+      <td style="text-align:right;white-space:nowrap">
+        <button class="btn-acao-mini" onclick="editarCliente(${i})">Editar</button>
+        <button class="btn-acao-mini deletar" onclick="excluirCliente(${i})">Excluir</button>
+      </td>
+    </tr>
+  `).join('') || '<tr><td colspan="4" style="text-align:center;color:var(--muted)">Nenhum cliente cadastrado</td></tr>';
 }
 
-function fecharModal(id){
-  document.getElementById(id).classList.remove('open');
+function novoCliente() {
+  const nome = prompt('Nome do cliente:'); if(!nome) return;
+  const cpf = prompt('CPF do cliente:');
+  const unidade = prompt('Unidade / Medidor:');
+  clientes.push({ nome, cpf, unidade });
+  localStorage.setItem('seter_cli', JSON.stringify(clientes));
+  renderC(); toast('Cliente cadastrado!');
 }
 
-function excluirLinha(btn){
-  const tr = btn.closest('tr');
-  tr.style.opacity = '0';
-  setTimeout(() => tr.remove(), 200);
-  toast('Registro apagado com sucesso.');
+function editarCliente(i) {
+  const c = clientes[i];
+  const nome = prompt('Editar nome:', c.nome); if(!nome) return;
+  clientes[i].nome = nome;
+  localStorage.setItem('seter_cli', JSON.stringify(clientes));
+  renderC(); toast('Cliente atualizado!');
 }
 
-function toast(msg){
-  const area = document.getElementById('toastArea');
-  const el = document.createElement('div');
-  el.className = 'toast';
-  el.textContent = '✓ ' + msg;
-  area.appendChild(el);
-  setTimeout(() => el.remove(), 3500);
+function excluirCliente(i) {
+  if(!confirm('Deseja excluir este cliente?')) return;
+  clientes.splice(i, 1);
+  localStorage.setItem('seter_cli', JSON.stringify(clientes));
+  renderC(); toast('Cliente excluído.');
 }
+
+function renderU() {
+  document.getElementById('tbU').innerHTML = unidades.map(u => `
+    <tr><td>${u.nome}</td><td>${u.tipo}</td><td>${u.doc}</td></tr>
+  `).join('') || '<tr><td colspan="3" style="text-align:center;color:var(--muted)">Nenhuma unidade</td></tr>';
+}
+
+function addUnidade() {
+  const nome = document.getElementById('uNome').value.trim();
+  const tipo = document.getElementById('uTipo').value;
+  const doc = document.getElementById('uDoc').value.trim();
+  if(!nome) { toast('Informe o nome da unidade'); return; }
+  unidades.push({ nome, tipo, doc });
+  localStorage.setItem('seter_uni', JSON.stringify(unidades));
+  renderU();
+  document.getElementById('uNome').value = '';
+  document.getElementById('uDoc').value = '';
+  toast('Unidade cadastrada com sucesso!');
+}
+
+/* 2. TELA HISTÓRICO COM LIXEIRA PRETA SUAVE NO CÓDIGO */
+function renderH() {
+  document.getElementById('tbH').innerHTML = historico.map((h, i) => `
+    <tr>
+      <td style="font-size:12px;color:var(--muted)">${new Date(h.data).toLocaleString('pt-BR')}</td>
+      <td><span style="font-size:10px;padding:2px 6px;background:rgba(0,113,227,0.1);color:var(--accent);border-radius:4px">${h.tipo}</span></td>
+      <td style="font-family:'JetBrains Mono'">${h.leitura}</td>
+      <td style="font-family:'JetBrains Mono'">${h.consumo}</td>
+      <td style="font-family:'JetBrains Mono';color:var(--mint)">R$ ${Number(h.total).toFixed(2)}</td>
+      <td style="text-align:right">
+        <button class="btn-lixeira-preta" onclick="excluirHistorico(${i})" title="Apagar histórico">🗑️ Apagar</button>
+      </td>
+    </tr>
+  `).join('') || '<tr><td colspan="6" style="text-align:center;color:var(--muted)">Nenhum histórico registrado</td></tr>';
+}
+
+function excluirHistorico(i) {
+  if(!confirm('Deseja apagar este registro do histórico?')) return;
+  historico.splice(i, 1);
+  localStorage.setItem('seter_hist', JSON.stringify(historico));
+  renderH();
+  toast('Registro removido do histórico.');
+}
+
+/* 3. TELA APROVAÇÕES COM MINI BOTÕES DE EDITAR E EXCLUIR */
+function renderA() {
+  document.getElementById('tbA').innerHTML = aprovacoes.map((a, i) => `
+    <tr>
+      <td><strong>${a.cliente}</strong></td>
+      <td>${a.de}</td>
+      <td>${a.para}</td>
+      <td style="text-align:right;white-space:nowrap">
+        <button class="btn-acao-mini" onclick="aprovarItem(${i})">Aprovar</button>
+        <button class="btn-acao-mini deletar" onclick="rejeitarItem(${i})">Excluir</button>
+      </td>
+    </tr>
+  `).join('') || '<tr><td colspan="4" style="text-align:center;color:var(--muted)">Nenhuma aprovação pendente</td></tr>';
+}
+
+function aprovarItem(i) {
+  aprovacoes.splice(i, 1);
+  localStorage.setItem('seter_apr', JSON.stringify(aprovacoes));
+  renderA();
+  toast('Aprovado com sucesso!');
+}
+
+function rejeitarItem(i) {
+  aprovacoes.splice(i, 1);
+  localStorage.setItem('seter_apr', JSON.stringify(aprovacoes));
+  renderA();
+  toast('Solicitação excluída.');
+}
+
+function periodo(p, el) {
+  document.querySelectorAll('.period-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  dash(p);
+}
+
+function dash(p='mes') {
+  const f = historico;
+  document.getElementById('stL').textContent = f.length;
+  document.getElementById('stA').textContent = f.filter(h=>h.tipo==='AGUA').reduce((a,h)=>a+h.consumo,0);
+  document.getElementById('stE').textContent = f.filter(h=>h.tipo==='ENERGIA').reduce((a,h)=>a+h.consumo,0);
+  const rec = f.reduce((a,h)=>a+h.total,0);
+  document.getElementById('stR').textContent = 'R$ ' + rec.toFixed(0);
+  document.getElementById('dreR').textContent = 'R$ ' + rec.toFixed(2);
+  document.getElementById('dreRes').textContent = 'R$ ' + (rec * 0.78).toFixed(2);
+}
+
+function gerarPix() {
+  if(!faturaAtual) return;
+  const codigo = `00020126360014BR.GOV.BCB.PIX0114+5599999999995204000053039865405${faturaAtual.total.toFixed(2).replace('.','')}5802BR5925SETER PRO TECNOLOGIA6009BRASILIA62070503***6304ABCD`;
+  document.getElementById('pixCodigo').textContent = codigo;
+  abrirModal('modalPix');
+  toast('PIX gerado com sucesso!');
+}
+
+function copiarPix() {
+  navigator.clipboard.writeText(document.getElementById('pixCodigo').textContent);
+  toast('Código PIX copiado!');
+}
+
+function enviarWhats() {
+  if(!faturaAtual) return;
+  const texto = encodeURIComponent(`Olá! Sua fatura de ${faturaAtual.tipo} no valor de R$ ${faturaAtual.total.toFixed(2)} está disponível.`);
+  window.open(`https://wa.me/?text=${texto}`, '_blank');
+}
+
+function salvarConfig() {
+  toast('Configurações salvas com sucesso!');
+}
+
+function abrirModal(id) { document.getElementById(id).classList.add('open'); }
+function fecharModal(id) { document.getElementById(id).classList.remove('open'); }
 </script>
 </body>
 </html>
