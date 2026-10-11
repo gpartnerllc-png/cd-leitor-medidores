@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Seter Pro · Leitura Inteligente</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<style>
+:root {
+  --navy: #080f1e;
+  --slate: #101827;
+  --cyan: #2de1f5;
+  --mint: #3fdba0;
+  --p: #f1f4fb;
+  --m: #7a8bab;
+  --b: rgba(255,255,255,0.08);
+  --r: 16px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--navy); color: var(--p); font-family: 'Inter', system-ui, sans-serif; min-height: 100vh; }
+.nav { display: flex; align-items: center; justify-content: space-between; padding: 18px 28px; border-bottom: 1px solid var(--b); background: rgba(8,15,30,0.92); backdrop-filter: blur(16px); position: sticky; top: 0; z-index: 10; }
+.logo { font-family: 'Sora', sans-serif; font-weight: 800; font-size: 20px; display: flex; align-items: center; gap: 10px; }
+.logo-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--mint); box-shadow: 0 0 12px var(--mint); }
+.badge { font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(45,225,245,0.35); color: var(--cyan); }
+.wrap { max-width: 1100px; margin: 0 auto; padding: 32px 20px 80px; }
+.hero { text-align: center; margin-bottom: 40px; }
+.hero h1 { font-family: 'Sora', sans-serif; font-size: 36px; font-weight: 800; background: linear-gradient(90deg, #fff, var(--cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.hero p { color: var(--m); margin-top: 8px; }
+.grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; }
+@media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
+.card { background: linear-gradient(180deg, rgba(22,32,47,0.9), rgba(16,24,39,0.95)); border: 1px solid var(--b); border-radius: var(--r); padding: 24px; backdrop-filter: blur(10px); }
+.card h2 { font-family: 'Sora', sans-serif; font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--m); margin-bottom: 16px; }
+input, select, button { width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--b); background: var(--slate); color: var(--p); font-size: 14px; margin-bottom: 12px; font-family: inherit; }
+button { background: linear-gradient(90deg, var(--cyan), #1aa8c0); color: #000; font-weight: 700; border: none; cursor: pointer; }
+button:disabled { opacity: 0.6; cursor: not-allowed; }
+.leitura { font-family: 'JetBrains Mono', monospace; font-size: 52px; font-weight: 700; color: var(--mint); text-align: center; margin: 12px 0; text-shadow: 0 0 20px rgba(63,219,160,0.4); }
+.small { font-size: 12px; color: var(--m); text-align: center; }
+.result { margin-top: 16px; padding: 16px; background: rgba(0,0,0,0.25); border-radius: 12px; }
+#preview { max-width: 100%; border-radius: 10px; margin-top: 8px; display: none; }
+</style>
+</head>
+<body>
+<nav class="nav">
+  <div class="logo"><div class="logo-dot"></div> Seter Pro</div>
+  <div class="badge">Worker Live</div>
+</nav>
+<div class="wrap">
+  <div class="hero">
+    <h1>Leitura Inteligente de Medidores</h1>
+    <p>Água e Energia · OCR no navegador · Assinatura · WhatsApp</p>
+  </div>
+  <div class="grid">
+    <div class="card">
+      <h2>Nova Leitura</h2>
+      <select id="tipo"><option value="AGUA">Água</option><option value="ENERGIA">Energia</option></select>
+      <input type="number" id="anterior" placeholder="Leitura anterior" />
+      <input type="file" id="foto" accept="image/*" />
+      <img id="preview" />
+      <button id="btn" onclick="processar()">Processar Leitura</button>
+      <div id="status" class="small"></div>
+    </div>
+    <div class="card">
+      <h2>Última Leitura</h2>
+      <div class="leitura" id="display">—</div>
+      <div class="small" id="meta">Aguardando foto...</div>
+      <div class="result" id="detalhes" style="display:none;"></div>
+    </div>
+  </div>
+</div>
+<script>
+const API = 'https://cd-leitor-medidores.contatodroppfy.workers.dev';
+
+document.getElementById('foto').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const img = document.getElementById('preview');
+  img.src = URL.createObjectURL(file);
+  img.style.display = 'block';
+});
+
+async function processar() {
+  const tipo = document.getElementById('tipo').value;
+  const anterior = document.getElementById('anterior').value;
+  const file = document.getElementById('foto').files[0];
+  const btn = document.getElementById('btn');
+  const status = document.getElementById('status');
+
+  if (!file || !anterior) return alert('Preencha leitura anterior e selecione a foto');
+
+  btn.disabled = true;
+  status.textContent = 'Lendo dígitos com OCR...';
+
+  try {
+    // OCR no navegador
+    const { data: { text } } = await Tesseract.recognize(file, 'eng', {
+      logger: m => { if (m.status === 'recognizing text') status.textContent = `OCR ${Math.round(m.progress * 100)}%`; }
+    });
+
+    const numeros = text.match(/\d{3,8}/g);
+    if (!numeros) {
+      status.textContent = 'Não consegui ler os dígitos. Tente uma foto mais nítida.';
+      btn.disabled = false;
+      return;
+    }
+    const leitura = parseInt(numeros.sort((a, b) => b.length - a.length)[0], 10);
+
+    status.textContent = 'Enviando para o servidor...';
+
+    const fd = new FormData();
+    fd.append('foto', file);
+    fd.append('tipo', tipo);
+    fd.append('leituraAnterior', anterior);
+    fd.append('leituraOCR', leitura); // envia a leitura já lida
+
+    const res = await fetch(API + '/api/ler-medidor', { method: 'POST', body: fd });
+    const data = await res.json();
+
+    document.getElementById('display').textContent = leitura;
+    document.getElementById('meta').textContent = `${tipo} · OCR no navegador`;
+    document.getElementById('detalhes').style.display = 'block';
+    document.getElementById('detalhes').innerHTML = `
+      <strong>Leitura OCR:</strong> ${leitura}<br>
+      <strong>Consumo:</strong> ${data.fatura?.consumo ?? (leitura - anterior)}<br>
+      <strong>Total estimado:</strong> R$ ${data.fatura?.total?.toFixed(2) ?? '—'}
+    `;
+    status.textContent = 'Concluído';
+  } catch (e) {
+    status.textContent = 'Erro: ' + e.message;
+  }
+  btn.disabled = false;
+}
+</script>
+</body>
+</html>
