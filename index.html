@@ -138,7 +138,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', -apple-s
             <div class="fatura-row"><span>Consumo</span><span id="fCons">—</span></div>
             <div class="total-box"><span>Total</span><span class="total-val" id="fTotal">R$ 0</span></div>
             <div style="display:flex;gap:8px;margin-top:14px">
-              <button class="btn btn-ghost btn-sm" onclick="toast('PIX gerado')">Gerar PIX</button>
+              <button class="btn btn-ghost btn-sm" onclick="gerarPix()">Gerar PIX</button>
               <button class="btn btn-ghost btn-sm" onclick="toast('WhatsApp')">WhatsApp</button>
             </div>
           </div>
@@ -206,11 +206,34 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', -apple-s
     </section>
 
     <section class="section" id="sec-config">
-      <div class="card"><div class="card-title">Configurações</div><div class="field"><label>Empresa</label><input placeholder="Seter Pro" /></div><button class="btn btn-prim" onclick="toast('Salvo')">Salvar</button></div>
+      <div class="card">
+        <div class="card-title">Configurações</div>
+        <div class="field"><label>Empresa</label><input id="cfgEmpresa" placeholder="Seter Pro" /></div>
+        <div class="field"><label>CNPJ</label><input id="cfgCnpj" /></div>
+        <div class="field"><label>Tarifa Água (R$/m³)</label><input type="number" id="cfgTarifaAgua" value="8.5" step="0.1" /></div>
+        <div class="field"><label>Tarifa Energia (R$/kWh)</label><input type="number" id="cfgTarifaEnergia" value="0.89" step="0.01" /></div>
+        <button class="btn btn-prim" onclick="salvarConfig()">Salvar</button>
+        <div style="margin-top:16px;display:flex;gap:8px">
+          <button class="btn btn-ghost btn-sm" onclick="exportarJSON()">Exportar JSON</button>
+          <button class="btn btn-ghost btn-sm" onclick="document.getElementById('importFile').click()">Importar</button>
+          <input type="file" id="importFile" accept=".json" style="display:none" onchange="importarDados(event)" />
+        </div>
+      </div>
     </section>
   </main>
 </div>
-<div class="toast-area" id="toasts"></div>
+<!-- MODAL PIX -->
+<div class="modal-bg" id="modalPix" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;display:none;align-items:center;justify-content:center">
+  <div class="card" style="max-width:420px;width:90%">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <strong>Cobrança PIX</strong>
+      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('modalPix').style.display='none'">✕</button>
+    </div>
+    <div id="pixCodigo" style="background:var(--surface2);padding:10px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:11px;word-break:break-all;margin-bottom:12px"></div>
+    <div id="pixTimer" style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:12px"></div>
+    <button class="btn btn-prim" style="width:100%" onclick="copiarPix()">Copiar código</button>
+  </div>
+</div>
 
 <script>
 const API = 'https://cd-leitor-medidores.contatodroppfy.workers.dev';
@@ -385,13 +408,40 @@ function excluirUnidade(i) {
   localStorage.setItem('seter_uni', JSON.stringify(unidades));
   renderU(); toast('Excluído');
 }
+function gerarPix() {
+  if (!document.getElementById('fatura').style.display || document.getElementById('fatura').style.display === 'none') {
+    toast('Processe uma leitura primeiro'); return;
+  }
+  const total = document.getElementById('fTotal').textContent.replace('R$ ','').replace(',','.');
+  const nome = clienteAtual?.nome || 'CONSUMIDOR';
+  const codigo = `00020126360014BR.GOV.BCB.PIX0114+55999999999952040000530398654${total.length.toString().padStart(2,'0')}${total}5802BR5925${nome.substring(0,25)}6009BRASILIA62070503***6304ABCD`;
+  document.getElementById('pixCodigo').textContent = codigo;
+  document.getElementById('modalPix').style.display = 'flex';
+  iniciarTimerPix(300);
+  toast('PIX gerado');
+}
+function iniciarTimerPix(seg) {
+  let r = seg;
+  const el = document.getElementById('pixTimer');
+  const iv = setInterval(() => {
+    r--;
+    const m = String(Math.floor(r/60)).padStart(2,'0');
+    const s = String(r%60).padStart(2,'0');
+    el.textContent = `Expira em ${m}:${s}`;
+    if (r <= 0) { clearInterval(iv); el.textContent = 'Expirado'; }
+  }, 1000);
+}
+function copiarPix() {
+  navigator.clipboard.writeText(document.getElementById('pixCodigo').textContent);
+  toast('Código copiado');
+}
 function abrirConfigAsaas() {
-  const key = prompt('API Key do Asaas:');
+  const key = prompt('API Key do Asaas (sandbox ou produção):');
   if (key) { localStorage.setItem('asaas_key', key); toast('Asaas configurado'); }
 }
 function abrirConfigWhats() {
-  const phone = prompt('Phone ID do WhatsApp:');
-  const token = prompt('Token do WhatsApp:');
+  const phone = prompt('Phone ID do WhatsApp Business:');
+  const token = prompt('Token permanente:');
   if (phone && token) {
     localStorage.setItem('wa_phone', phone);
     localStorage.setItem('wa_token', token);
@@ -405,7 +455,40 @@ document.getElementById('modoLeitura')?.addEventListener('change', function() {
 function renderH() {
   document.getElementById('tbH').innerHTML = historico.slice(0,40).map(h=>`<tr><td>${new Date(h.data).toLocaleString('pt-BR')}</td><td>${h.tipo}</td><td>${h.leitura}</td><td>${h.consumo}</td><td>R$ ${h.total.toFixed(2)}</td></tr>`).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--muted)">Sem dados</td></tr>';
 }
-function renderA() {
+function salvarConfig() {
+  localStorage.setItem('cfg_empresa', document.getElementById('cfgEmpresa').value);
+  localStorage.setItem('cfg_tarifa_agua', document.getElementById('cfgTarifaAgua').value);
+  localStorage.setItem('cfg_tarifa_energia', document.getElementById('cfgTarifaEnergia').value);
+  toast('Configurações salvas');
+}
+function exportarJSON() {
+  const dados = { clientes, unidades, historico };
+  const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'seter-backup.json';
+  a.click();
+  toast('Backup exportado');
+}
+function importarDados(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const d = JSON.parse(ev.target.result);
+      if (d.clientes) clientes = d.clientes;
+      if (d.unidades) unidades = d.unidades;
+      if (d.historico) historico = d.historico;
+      localStorage.setItem('seter_cli', JSON.stringify(clientes));
+      localStorage.setItem('seter_uni', JSON.stringify(unidades));
+      localStorage.setItem('seter_hist', JSON.stringify(historico));
+      renderC(); renderU(); renderH();
+      toast('Dados importados');
+    } catch { toast('Arquivo inválido'); }
+  };
+  reader.readAsText(file);
+}
   document.getElementById('tbA').innerHTML = aprovacoes.map((a,i)=>`<tr><td>${a.cliente}</td><td>${a.de}</td><td>${a.para}</td><td><button class="btn btn-prim btn-sm" onclick="aprovacoes.splice(${i},1);localStorage.setItem('seter_apr',JSON.stringify(aprovacoes));renderA();toast('Aprovado')">Aprovar</button></td></tr>`).join('') || '<tr><td colspan="4" style="text-align:center;color:var(--muted)">Nenhuma</td></tr>';
 }
 </script>
