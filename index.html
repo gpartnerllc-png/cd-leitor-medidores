@@ -122,7 +122,11 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', -apple-s
           <div id="clienteInfo" style="display:none;margin-bottom:14px;padding:12px;background:var(--accent-soft);border-radius:10px;font-size:13px"></div>
           <div class="field"><label>Tipo</label><select id="tipo"><option value="AGUA">Água</option><option value="ENERGIA">Energia</option></select></div>
           <div class="field"><label>Leitura anterior</label><input type="number" id="anterior" value="0" /></div>
-          <div class="field"><label>Foto do medidor</label><input type="file" id="foto" accept="image/*" /></div>
+          <div class="field"><label>Modo de leitura</label>
+  <select id="modoLeitura"><option value="foto">Foto / OCR</option><option value="qr">QR Code / Scanner</option></select>
+</div>
+<div class="field" id="campoFoto"><label>Foto do medidor</label><input type="file" id="foto" accept="image/*" /></div>
+<div class="field" id="campoQR" style="display:none"><label>Código QR / Scanner</label><input id="qrInput" placeholder="Cole o código ou use scanner" /></div>
           <button class="btn btn-prim" style="width:100%" onclick="processar()">Processar com OCR</button>
           <div id="status" style="font-size:12px;color:var(--muted);margin-top:10px;text-align:center"></div>
         </div>
@@ -171,7 +175,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', -apple-s
         <div class="field"><label>Tipo</label><select id="uTipo"><option>Condomínio</option><option>Empresa</option><option>Residência</option></select></div>
         <div class="field"><label>CNPJ / CPF</label><input id="uDoc" /></div>
         <button class="btn btn-prim" onclick="addUnidade()">Cadastrar</button>
-        <table class="tbl" style="margin-top:16px"><thead><tr><th>Nome</th><th>Tipo</th><th>Doc</th></tr></thead><tbody id="tbU"></tbody></table>
+        <table class="tbl" style="margin-top:16px"><thead><tr><th>Nome</th><th>Tipo</th><th>Doc</th><th></th></tr></thead><tbody id="tbU"></tbody></table>
       </div>
     </section>
 
@@ -194,8 +198,8 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', -apple-s
       <div class="card">
         <div class="card-title">Integrações</div>
         <div style="display:flex;flex-direction:column;gap:10px">
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--surface2);border-radius:10px"><div><strong>Asaas</strong><div style="font-size:12px;color:var(--muted)">PIX e boletos</div></div><button class="btn btn-ghost btn-sm" onclick="toast('Asaas OK')">Configurar</button></div>
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--surface2);border-radius:10px"><div><strong>WhatsApp</strong><div style="font-size:12px;color:var(--muted)">Faturas</div></div><button class="btn btn-ghost btn-sm" onclick="toast('WhatsApp OK')">Configurar</button></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--surface2);border-radius:10px"><div><strong>Asaas</strong><div style="font-size:12px;color:var(--muted)">PIX e boletos</div></div><button class="btn btn-ghost btn-sm" onclick="abrirConfigAsaas()">Configurar</button></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--surface2);border-radius:10px"><div><strong>WhatsApp</strong><div style="font-size:12px;color:var(--muted)">Faturas</div></div><button class="btn btn-ghost btn-sm" onclick="abrirConfigWhats()">Configurar</button></div>
           <div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--surface2);border-radius:10px"><div><strong>D1</strong><div style="font-size:12px;color:var(--muted)">Leituras</div></div><span style="color:var(--mint);font-size:12px">Ativo</span></div>
         </div>
       </div>
@@ -336,12 +340,68 @@ function novoCliente() {
 function renderU() {
   document.getElementById('tbU').innerHTML = unidades.map(u=>`<tr><td>${u.nome}</td><td>${u.tipo}</td><td>${u.doc}</td></tr>`).join('') || '<tr><td colspan="3" style="text-align:center;color:var(--muted)">Nenhuma</td></tr>';
 }
-function addUnidade() {
-  const nome = document.getElementById('uNome').value.trim(); if(!nome) return toast('Informe o nome');
-  unidades.push({nome, tipo:document.getElementById('uTipo').value, doc:document.getElementById('uDoc').value});
-  localStorage.setItem('seter_uni', JSON.stringify(unidades));
-  renderU(); toast('Unidade OK');
+function validarDoc(doc) {
+  const n = doc.replace(/\D/g,'');
+  if (n.length !== 11 && n.length !== 14) return false;
+  return true;
 }
+function addUnidade() {
+  const nome = document.getElementById('uNome').value.trim();
+  const tipo = document.getElementById('uTipo').value;
+  const doc = document.getElementById('uDoc').value.trim();
+  if (!nome) return toast('Informe o nome');
+  if (!validarDoc(doc)) return toast('CPF/CNPJ inválido');
+  if (unidades.some(u => u.doc.replace(/\D/g,'') === doc.replace(/\D/g,''))) return toast('Documento já cadastrado');
+  unidades.push({ nome, tipo, doc, id: Date.now() });
+  localStorage.setItem('seter_uni', JSON.stringify(unidades));
+  renderU();
+  document.getElementById('uNome').value = '';
+  document.getElementById('uDoc').value = '';
+  toast('Unidade cadastrada');
+}
+function renderU() {
+  document.getElementById('tbU').innerHTML = unidades.map((u,i) => `
+    <tr>
+      <td>${u.nome}</td>
+      <td>${u.tipo}</td>
+      <td>${u.doc}</td>
+      <td>
+        <button class="btn btn-ghost btn-sm" onclick="editarUnidade(${i})">Editar</button>
+        <button class="btn btn-ghost btn-sm" onclick="excluirUnidade(${i})">Excluir</button>
+      </td>
+    </tr>`).join('') || '<tr><td colspan="4" style="text-align:center;color:var(--muted)">Nenhuma</td></tr>';
+}
+function editarUnidade(i) {
+  const u = unidades[i];
+  const nome = prompt('Nome:', u.nome); if (!nome) return;
+  const doc = prompt('Documento:', u.doc); if (!validarDoc(doc)) return toast('Documento inválido');
+  unidades[i] = { ...u, nome, doc };
+  localStorage.setItem('seter_uni', JSON.stringify(unidades));
+  renderU(); toast('Atualizado');
+}
+function excluirUnidade(i) {
+  if (!confirm('Excluir unidade?')) return;
+  unidades.splice(i, 1);
+  localStorage.setItem('seter_uni', JSON.stringify(unidades));
+  renderU(); toast('Excluído');
+}
+function abrirConfigAsaas() {
+  const key = prompt('API Key do Asaas:');
+  if (key) { localStorage.setItem('asaas_key', key); toast('Asaas configurado'); }
+}
+function abrirConfigWhats() {
+  const phone = prompt('Phone ID do WhatsApp:');
+  const token = prompt('Token do WhatsApp:');
+  if (phone && token) {
+    localStorage.setItem('wa_phone', phone);
+    localStorage.setItem('wa_token', token);
+    toast('WhatsApp configurado');
+  }
+}
+document.getElementById('modoLeitura')?.addEventListener('change', function() {
+  document.getElementById('campoFoto').style.display = this.value === 'foto' ? '' : 'none';
+  document.getElementById('campoQR').style.display = this.value === 'qr' ? '' : 'none';
+});
 function renderH() {
   document.getElementById('tbH').innerHTML = historico.slice(0,40).map(h=>`<tr><td>${new Date(h.data).toLocaleString('pt-BR')}</td><td>${h.tipo}</td><td>${h.leitura}</td><td>${h.consumo}</td><td>R$ ${h.total.toFixed(2)}</td></tr>`).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--muted)">Sem dados</td></tr>';
 }
