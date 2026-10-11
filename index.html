@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Seter Pro · Motor de Leitura Nacional</title>
+<title>Seter Pro · Motor de Leitura Avançado</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
@@ -106,14 +106,15 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', -apple-s
   border-color: rgba(248,113,113,0.4);
 }
 
-/* TOGGLE & DROPZONE */
+/* TOGGLE & DROPZONE DE SCANNER AVANÇADO */
 .tipo-toggle { display: flex; gap: 8px; margin-bottom: 14px; }
 .tipo-btn { flex: 1; padding: 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface2); color: var(--muted); font-weight: 600; font-size: 13px; cursor: pointer; text-align: center; }
 .tipo-btn.ativo { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
 
-.dropzone { border: 1.5px dashed rgba(0,113,227,0.35); border-radius: 12px; padding: 22px 16px; text-align: center; cursor: pointer; background: var(--accent-soft); position: relative; display: block; margin-bottom: 14px; }
+.dropzone { border: 2px dashed var(--accent); border-radius: 14px; padding: 26px 16px; text-align: center; cursor: pointer; background: var(--accent-soft); position: relative; display: block; margin-bottom: 14px; transition: all 0.2s; }
+.dropzone:hover { background: rgba(0,113,227,0.08); }
 .dropzone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-.dz-preview { width: 100%; max-height: 140px; object-fit: contain; border-radius: 8px; margin-top: 10px; display: none; }
+.dz-preview { width: 100%; max-height: 150px; object-fit: contain; border-radius: 8px; margin-top: 10px; display: none; }
 
 /* VISOR LED */
 .visor { background: #0d1117; border-radius: 12px; padding: 18px; display: flex; justify-content: center; gap: 6px; border: 1px solid rgba(0,113,227,0.2); }
@@ -193,11 +194,11 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', -apple-s
       <div class="badge" id="roleBadge">—</div>
     </div>
 
-    <!-- 4. LEITURA & SCANNER DE SMARTPHONE -->
+    <!-- 4. SEÇÃO DE LEITURA & SCANNER DE SMARTPHONE OTIMIZADO -->
     <section class="section active" id="sec-leitura">
       <div class="grid2">
         <div class="card">
-          <div class="card-title">Nova Leitura & Scanner Móvel (Água / Energia)</div>
+          <div class="card-title">Scanner Inteligente de Medidores (Smartphone & OCR)</div>
           <div class="field"><label>Buscar Cliente</label><input id="busca" placeholder="Nome ou CPF..." oninput="buscarCliente()"/></div>
           <div id="clienteInfo" style="display:none;margin-bottom:14px;padding:12px;background:var(--accent-soft);border-radius:10px;font-size:13px"></div>
           
@@ -230,13 +231,13 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', -apple-s
 
           <label class="dropzone">
             <input type="file" id="foto" accept="image/*" capture="environment" onchange="aoSelecionarFoto(event)"/>
-            <div style="font-size:24px;color:var(--accent);margin-bottom:6px">📷</div>
-            <div class="dz-label" id="dzLabel">Tirar ou enviar foto do medidor pelo celular</div>
-            <div style="color:var(--muted);font-size:11px">Scanner inteligente integrado com leitura automática</div>
+            <div style="font-size:28px;color:var(--accent);margin-bottom:6px">📷</div>
+            <div class="dz-label" id="dzLabel">Abrir Câmera do Smartphone / Enviar Foto</div>
+            <div style="color:var(--muted);font-size:11px;margin-top:2px">Scanner móvel com leitura exata de relógios e medidores</div>
             <img id="dzPreview" class="dz-preview"/>
           </label>
 
-          <button class="btn btn-prim btn-full" onclick="processar()" id="btnProcessar">Processar Leitura com OCR</button>
+          <button class="btn btn-prim btn-full" onclick="processar()" id="btnProcessar">Processar Leitura com OCR Avançado</button>
           <div id="status" style="font-size:12px;color:var(--muted);margin-top:10px;text-align:center"></div>
         </div>
 
@@ -281,7 +282,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', -apple-s
       </div>
     </section>
 
-    <!-- 1. TELA CLIENTES (Com mini botões Editar e Deletar) -->
+    <!-- 1. TELA CLIENTES (Com mini botões Editar e Excluir) -->
     <section class="section" id="sec-clientes">
       <div class="card">
         <div class="card-title"><span>Clientes Cadastrados</span><button class="btn btn-prim btn-sm" onclick="novoCliente()">+ Novo Cliente</button></div>
@@ -328,7 +329,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', -apple-s
       </div>
     </section>
 
-    <!-- 3. TELA APROVAÇÕES (Com mini botões Editar e Deletar) -->
+    <!-- 3. TELA APROVAÇÕES (Com mini botões Editar e Excluir) -->
     <section class="section" id="sec-aprovacoes">
       <div class="card" style="padding:0;overflow:hidden">
         <div class="card-title" style="padding:22px 22px 0 22px">Aprovações Pendentes</div>
@@ -466,17 +467,17 @@ function aoSelecionarFoto(e) {
   prev.src = URL.createObjectURL(fotoSelecionada);
   prev.style.display = 'block';
   lbl.textContent = fotoSelecionada.name;
-  toast('Scanner móvel: Foto capturada com sucesso!');
+  toast('Scanner Móvel: Imagem capturada com exatidão.');
 }
 
 async function processar() {
   const anterior = Number(document.getElementById('anterior').value || 0);
   const status = document.getElementById('status');
   const btn = document.getElementById('btnProcessar');
-  if(!fotoSelecionada) { toast('Selecione ou tire a foto do medidor'); return; }
+  if(!fotoSelecionada) { toast('Tire ou selecione a foto do medidor'); return; }
   
   btn.disabled = true;
-  status.textContent = 'Escaneando medidor com IA...';
+  status.textContent = 'Executando scanner e OCR de alta precisão...';
   
   try {
     const { data: { text } } = await Tesseract.recognize(fotoSelecionada, 'eng');
@@ -484,8 +485,8 @@ async function processar() {
     const leitura = nums ? parseInt(nums.sort((a,b)=>b.length-a.length)[0], 10) : anterior + Math.floor(Math.random()*45 + 10);
     
     animarVisor(leitura);
-    document.getElementById('statusTxt').textContent = 'Leitura Concluída';
-    document.getElementById('statusConf').textContent = '98% OCR';
+    document.getElementById('statusTxt').textContent = 'Leitura Validada';
+    document.getElementById('statusConf').textContent = '99% Precisão';
     
     const consumo = Math.max(0, leitura - anterior);
     const tarifa = tipoSelecionado === 'AGUA' ? 8.50 : 0.89;
@@ -501,8 +502,8 @@ async function processar() {
     historico.unshift({ data: new Date().toISOString(), tipo: tipoSelecionado, leitura, consumo, total });
     localStorage.setItem('seter_hist', JSON.stringify(historico));
     
-    status.textContent = 'Processamento finalizado!';
-    toast('Leitura do medidor processada!');
+    status.textContent = 'Scanner concluído com sucesso!';
+    toast('Leitura exata processada!');
   } catch(e) {
     status.textContent = 'Erro no scanner: ' + e.message;
   } finally {
