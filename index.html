@@ -48,17 +48,16 @@ body{background:var(--navy);color:var(--p);font-family:'Inter',sans-serif;min-he
 .field label{font-size:11px;font-weight:600;color:var(--m);text-transform:uppercase;letter-spacing:.06em}
 .field input,.field select,.field textarea{background:var(--slate1);border:1px solid var(--b);border-radius:var(--r2);padding:10px 12px;color:var(--p);font-family:'Inter',sans-serif;font-size:13px;outline:none;width:100%}
 .field input:focus,.field select:focus{border-color:var(--cyan)}
-.field select option{background:var(--slate1)}
 
 /* TOGGLE */
 .tipo-toggle{display:flex;gap:8px}
 .tipo-btn{flex:1;padding:10px;border-radius:var(--r2);border:1px solid var(--b);background:var(--slate1);color:var(--m);font-family:'Inter',sans-serif;font-weight:600;font-size:13px;cursor:pointer;transition:all .15s}
 .tipo-btn.ativo{background:rgba(59,123,255,0.15);border-color:var(--blue);color:var(--p)}
 
-/* DROPZONE */
-.dropzone{border:1.5px dashed rgba(59,123,255,0.35);border-radius:var(--r);padding:24px 16px;text-align:center;cursor:pointer;background:rgba(59,123,255,0.03);position:relative}
+/* DROPZONE & SCANNER */
+.dropzone{border:1.5px dashed rgba(59,123,255,0.35);border-radius:var(--r);padding:28px 16px;text-align:center;cursor:pointer;background:rgba(59,123,255,0.03);position:relative}
 .dropzone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
-.dz-preview{width:100%;max-height:140px;object-fit:contain;border-radius:var(--r2);margin-top:10px;display:none}
+.dz-preview{width:100%;max-height:160px;object-fit:contain;border-radius:var(--r2);margin-top:12px;display:none}
 
 /* VISOR */
 .visor{background:radial-gradient(ellipse at center,#0d1524,#060911);border-radius:var(--r);padding:18px;display:flex;justify-content:center;gap:6px;border:1px solid rgba(45,225,245,0.2)}
@@ -66,32 +65,46 @@ body{background:var(--navy);color:var(--p);font-family:'Inter',sans-serif;min-he
 .digito.on{color:var(--cyan);text-shadow:0 0 14px rgba(45,225,245,0.5)}
 .status-bar{display:flex;justify-content:space-between;margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--m)}
 
-/* BOTÕES SUAVES E MINI BOTÕES */
-.btn{padding:10px 16px;border-radius:var(--r2);border:none;font-family:'Sora',sans-serif;font-weight:700;font-size:12px;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+/* BOTÕES */
+.btn{padding:10px 16px;border-radius:var(--r2);border:none;font-family:'Sora',sans-serif;font-weight:700;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
 .btn-full{width:100%}
 .btn-prim{background:linear-gradient(135deg,var(--blue),#2054d4);color:#fff}
-.btn-mint{background:rgba(63,219,160,0.12);border:1px solid rgba(63,219,160,0.3);color:var(--mint)}
-.btn-amber{background:rgba(245,166,35,0.12);border:1px solid rgba(245,166,35,0.3);color:var(--amber)}
-.btn-rose{background:rgba(245,85,85,0.12);border:1px solid rgba(245,85,85,0.3);color:var(--rose)}
+.btn-mint{background:rgba(63,219,160,0.1);border:1px solid rgba(63,219,160,0.3);color:var(--mint)}
+.btn-amber{background:rgba(245,166,35,0.1);border:1px solid rgba(245,166,35,0.3);color:var(--amber)}
+.btn-rose{background:rgba(245,85,85,0.1);border:1px solid rgba(245,85,85,0.3);color:var(--rose)}
 .btn-ghost{background:transparent;border:1px solid var(--b);color:var(--m)}
-.btn-ghost:hover{border-color:var(--p);color:var(--p)}
-.btn-sm{padding:5px 10px;font-size:11px;border-radius:6px}
+.btn-sm{padding:6px 12px;font-size:11px;border-radius:6px}
 
-/* LIXEIRA PRETA SUAVE NO HISTÓRICO */
-.btn-lixeira {
-  background: #111827;
-  color: #9ca3af;
-  border: 1px solid rgba(255,255,255,0.1);
-  padding: 5px 8px;
+/* MINI BOTÕES DE AÇÃO NA 1ª E 3ª FOTO */
+.btn-acao-mini {
+  padding: 5px 10px;
+  font-size: 11px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--b);
+  background: var(--slate1);
+  color: var(--p);
+  transition: all 0.15s;
+}
+.btn-acao-mini:hover { border-color: var(--cyan); color: var(--cyan); }
+.btn-acao-mini.deletar { color: var(--rose); border-color: rgba(245,85,85,0.3); background: rgba(245,85,85,0.05); }
+
+/* LIXEIRA PRETA SUAVE NA 2ª FOTO (HISTÓRICO) */
+.btn-lixeira-preta {
+  background: #0f172a;
+  color: #94a3b8;
+  border: 1px solid #334155;
+  padding: 6px 10px;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 11px;
+  font-size: 12px;
   transition: all 0.2s;
 }
-.btn-lixeira:hover {
-  background: #1f2937;
+.btn-lixeira-preta:hover {
+  background: #1e293b;
   color: #f87171;
-  border-color: rgba(248,113,113,0.3);
+  border-color: #f87171;
 }
 
 /* TABELA */
@@ -102,7 +115,7 @@ body{background:var(--navy);color:var(--p);font-family:'Inter',sans-serif;min-he
 
 /* TOAST & MODAL */
 .toast-area{position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:8px;z-index:999}
-.toast{padding:10px 14px;border-radius:var(--r2);font-size:12px;font-weight:500;background:rgba(16,24,39,0.9);border:1px solid var(--b);color:var(--p);box-shadow:0 4px 12px rgba(0,0,0,0.3)}
+.toast{padding:12px 16px;border-radius:var(--r2);font-size:13px;font-weight:500;background:var(--slate2);border:1px solid var(--b);color:var(--p);box-shadow:0 4px 20px rgba(0,0,0,0.4)}
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;display:none;align-items:center;justify-content:center;padding:16px}
 .modal-bg.open{display:flex}
 .modal{background:var(--slate2);border:1px solid var(--b);border-radius:var(--r);padding:24px;width:100%;max-width:440px}
@@ -121,56 +134,56 @@ body{background:var(--navy);color:var(--p);font-family:'Inter',sans-serif;min-he
     <button class="tab" onclick="irPara('historico',this)">Histórico</button>
     <button class="tab" onclick="irPara('aprovacoes',this)">Aprovações</button>
   </div>
-  <div class="badge-env">v3.5 · PROD</div>
+  <div class="badge-env">v3.0 · PROD</div>
 </nav>
 
 <div class="toast-area" id="toastArea"></div>
 
-<!-- MODAL CLIENTE (Editar / Novo) -->
+<!-- MODAL CLIENTE -->
 <div class="modal-bg" id="modalCliente">
   <div class="modal">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-      <h3 id="modalClienteTitulo" style="font-size:15px;font-weight:700">Novo Cliente</h3>
-      <button onclick="fecharModal('modalCliente')" style="background:none;border:none;color:var(--m);cursor:pointer">✕</button>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <h3 style="font-size:16px;font-weight:700">Editar / Novo Cliente</h3>
+      <button onclick="fecharModal('modalCliente')" style="background:none;border:none;color:var(--m);cursor:pointer;font-size:16px">✕</button>
     </div>
-    <div class="row" style="gap:10px">
-      <div class="field"><label>Nome completo</label><input id="cNome" placeholder="Nome do cliente"/></div>
-      <div class="field"><label>CPF / CNPJ</label><input id="cCpf" placeholder="000.000.000-00"/></div>
-      <div class="field"><label>Unidade / Medidor (Água/Energia)</label><input id="cMedidor" placeholder="Nº do Hidrômetro ou Medidor"/></div>
-      <button class="btn btn-prim btn-full" onclick="salvarCliente()" style="margin-top:8px">Salvar Cliente</button>
+    <div class="row" style="gap:12px">
+      <div class="field"><label>Nome</label><input id="inpNome" placeholder="Nome do cliente"/></div>
+      <div class="field"><label>CPF</label><input id="inpCpf" placeholder="000.000.000-00"/></div>
+      <div class="field"><label>Medidor / Unidade</label><input id="inpMedidor" placeholder="Nº do medidor"/></div>
+      <button class="btn btn-prim btn-full" onclick="salvarClienteModal()" style="margin-top:6px">Salvar Alterações</button>
     </div>
   </div>
 </div>
 
-<!-- SEÇÃO: LEITURA & SCANNER DE SMARTPHONE -->
+<!-- 1. SEÇÃO LEITURA & SCANNER DE SMARTPHONE -->
 <div class="section ativa" id="s-leitura">
 <div class="wrap">
-  <div class="eyebrow" style="font-family:'JetBrains Mono';font-size:11px;color:var(--cyan);margin-bottom:6px">SCANNER DE DISPOSITIVOS MÓVEIS ATIVO</div>
-  <h1 style="font-family:'Sora',sans-serif;font-size:24px;font-weight:800;margin-bottom:4px">Leitura de Medidores</h1>
-  <p style="color:var(--m);margin-bottom:20px;font-size:13px">Capture a foto do relógio ou medidor pelo smartphone para leitura automática dos padrões.</p>
+  <div class="eyebrow" style="font-family:'JetBrains Mono';font-size:11px;color:var(--cyan);margin-bottom:6px">SCANNER DE SMARTPHONES E MEDIDORES ATIVO</div>
+  <h1 style="font-family:'Sora',sans-serif;font-size:24px;font-weight:800;margin-bottom:4px">Seter <span style="color:var(--blue)">Leitura</span></h1>
+  <p style="color:var(--m);margin-bottom:20px;font-size:13px">Sistema inteligente de captura otimizado para celulares para leitura de relógios de água e medidores de energia.</p>
 
   <div class="grid2">
     <div class="panel">
-      <div class="panel-title">Captura por Câmera / Arquivo</div>
-      <div class="tipo-toggle" style="margin-bottom:12px">
+      <div class="panel-title">Captura & Câmera do Smartphone</div>
+      <div class="tipo-toggle" style="margin-bottom:14px">
         <button class="tipo-btn ativo" onclick="selTipo('AGUA',this)">💧 Água</button>
         <button class="tipo-btn" onclick="selTipo('ENERGIA',this)">⚡ Energia</button>
       </div>
 
       <label class="dropzone">
-        <input type="file" id="inputFoto" accept="image/*" capture="environment" onchange="aoFoto(event)"/>
-        <div style="font-size:24px;color:var(--blue);margin-bottom:6px">📷</div>
-        <div style="font-weight:600;font-size:13px" id="dzTxt">Tirar foto do medidor / relógio</div>
-        <div style="color:var(--m);font-size:11px;margin-top:2px">Leitura otimizada para smartphones</div>
-        <img id="dzPrev" class="dz-preview"/>
+        <input type="file" id="inputFoto" accept="image/*" capture="environment" onchange="aoSelecionarFoto(event)"/>
+        <div style="font-size:28px;color:var(--blue);margin-bottom:6px">📷</div>
+        <div style="font-weight:600;font-size:13px" id="dzLabel">Tirar ou enviar foto do medidor / relógio</div>
+        <div style="color:var(--m);font-size:11px;margin-top:3px">Leitura automática de padrões para smartphones</div>
+        <img id="dzPreview" class="dz-preview"/>
       </label>
 
       <div class="row cols2" style="margin-top:12px">
-        <div class="field"><label>Leitura anterior</label><input id="lAnt" type="number" value="20000000"/></div>
-        <div class="field"><label>Leitura atual</label><input id="lAt" type="number" placeholder="Automático ou manual"/></div>
+        <div class="field"><label>Leitura anterior</label><input type="number" id="lAnt" value="20000058"/></div>
+        <div class="field"><label>Leitura atual</label><input type="number" id="lAtual" placeholder="Detectada ou manual"/></div>
       </div>
 
-      <button class="btn btn-prim btn-full" onclick="processarLeitura()" style="margin-top:14px">Processar Leitura com IA</button>
+      <button class="btn btn-prim btn-full" onclick="processarLeituraIA()" style="margin-top:16px">Processar Leitura com IA</button>
     </div>
 
     <div>
@@ -182,24 +195,24 @@ body{background:var(--navy);color:var(--p);font-family:'Inter',sans-serif;min-he
           <span class="digito on" id="d3">0</span><span class="digito on" id="d4">0</span>
         </div>
         <div class="status-bar">
-          <span style="color:var(--mint)">OCR Concluído · 98%</span>
+          <span style="color:var(--mint)">OCR Concluído · 96%</span>
           <span>Padrão Nacional</span>
         </div>
       </div>
 
       <div class="panel">
-        <div class="panel-title">Fatura & Envio Automático</div>
+        <div class="panel-title">Fatura Calculada</div>
         <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--b);font-size:13px">
-          <span style="color:var(--m)">Consumo Calculado</span>
-          <span id="resConsumo" style="font-family:'JetBrains Mono';font-weight:600">124 m³</span>
+          <span style="color:var(--m)">Consumo Registrado</span>
+          <span style="font-family:'JetBrains Mono';font-weight:600" id="resConsumo">20.000.000 kWh</span>
         </div>
-        <div style="display:flex;justify-content:space-between;padding:10px 0;font-size:14px">
+        <div style="display:flex;justify-content:space-between;padding:12px 0;font-size:15px">
           <span style="color:var(--m)">Total a Pagar</span>
-          <span id="resTotal" style="font-family:'JetBrains Mono';font-weight:700;color:var(--mint)">R$ 1.110,72</span>
+          <span style="font-family:'JetBrains Mono';font-weight:700;color:var(--mint)" id="resTotal">R$ 1.780.015,00</span>
         </div>
-        <div style="display:flex;gap:6px;margin-top:10px">
-          <button class="btn btn-mint btn-sm" onclick="toast('Fatura enviada por WhatsApp!')">📱 WhatsApp</button>
-          <button class="btn btn-amber btn-sm" onclick="toast('E-mail disparado com sucesso!')">✉️ E-mail</button>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn btn-mint btn-sm" onclick="toast('PIX Gerado com sucesso!')">⚡ Gerar PIX</button>
+          <button class="btn btn-amber btn-sm" onclick="toast('Fatura enviada no WhatsApp!')">📱 WhatsApp</button>
         </div>
       </div>
     </div>
@@ -207,15 +220,15 @@ body{background:var(--navy);color:var(--p);font-family:'Inter',sans-serif;min-he
 </div>
 </div>
 
-<!-- SEÇÃO: CLIENTES (Com Botões Pequenos) -->
+<!-- 1. SEÇÃO CLIENTES (Com botões de Editar e Deletar pequeno) -->
 <div class="section" id="s-clientes">
 <div class="wrap">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
     <div>
-      <h2 style="font-family:'Sora';font-size:20px;font-weight:800">Clientes Cadastrados</h2>
-      <p style="color:var(--m);font-size:12px">Gerencie unidades consumidoras e medidores</p>
+      <h2 style="font-family:'Sora';font-size:20px;font-weight:800">Clientes</h2>
+      <p style="color:var(--m);font-size:12px">Clientes cadastrados no sistema[cite: 6]</p>
     </div>
-    <button class="btn btn-prim btn-sm" onclick="abrirModalCliente()">+ Novo Cliente</button>
+    <button class="btn btn-prim btn-sm" onclick="abrirModalClienteNovo()">+ Novo Cliente</button>
   </div>
 
   <div class="panel" style="padding:0;overflow:hidden">
@@ -223,19 +236,19 @@ body{background:var(--navy);color:var(--p);font-family:'Inter',sans-serif;min-he
       <thead>
         <tr>
           <th>Nome</th>
-          <th>CPF / CNPJ</th>
+          <th>CPF</th>
           <th>Unidade / Medidor</th>
           <th style="text-align:right">Ações</th>
         </tr>
       </thead>
-      <tbody id="tabelaClientes">
+      <tbody id="listaClientesTabela">
         <tr>
           <td><strong>Mikaele Rabelo do Nascimento</strong></td>
           <td style="font-family:'JetBrains Mono';color:var(--m)">—</td>
           <td style="font-family:'JetBrains Mono';color:var(--m)">—</td>
-          <td style="text-align:right">
-            <button class="btn btn-ghost btn-sm" onclick="editarCliente('Mikaele Rabelo do Nascimento')">Editar</button>
-            <button class="btn btn-rose btn-sm" onclick="removerLinha(this)">Excluir</button>
+          <td style="text-align:right;white-space:nowrap">
+            <button class="btn-acao-mini" onclick="editarCliente(this)">Editar</button>
+            <button class="btn-acao-mini deletar" onclick="excluirLinha(this)">Excluir</button>
           </td>
         </tr>
       </tbody>
@@ -244,35 +257,45 @@ body{background:var(--navy);color:var(--p);font-family:'Inter',sans-serif;min-he
 </div>
 </div>
 
-<!-- SEÇÃO: HISTÓRICO (Com Lixeira Preta Suave) -->
+<!-- 2. SEÇÃO HISTÓRICO (Com lixeira preta suave no código) -->
 <div class="section" id="s-historico">
 <div class="wrap">
   <div style="margin-bottom:16px">
     <h2 style="font-family:'Sora';font-size:20px;font-weight:800">Histórico de Leituras</h2>
-    <p style="color:var(--m);font-size:12px">Registro completo de consumo e faturamento</p>
+    <p style="color:var(--m);font-size:12px">Registro completo e lixeira para apagar quando necessário[cite: 7]</p>
   </div>
 
   <div class="panel" style="padding:0;overflow:hidden">
     <table class="tbl">
       <thead>
         <tr>
-          <th>Data / Hora</th>
+          <th>Data</th>
           <th>Tipo</th>
           <th>Leitura</th>
           <th>Consumo</th>
           <th>Total</th>
-          <th style="text-align:right">Apagar</th>
+          <th style="text-align:right">Remover</th>
         </tr>
       </thead>
-      <tbody id="tabelaHistorico">
+      <tbody id="listaHistoricoTabela">
         <tr>
           <td style="font-size:12px;color:var(--m)">11/10/2026, 16:27:37</td>
-          <td><span style="font-size:10px;padding:2px 6px;background:rgba(59,123,255,0.1);color:var(--blue);border-radius:4px">ENERGIA</span></td>
-          <td style="font-family:'JetBrains Mono'">20000058</td>
-          <td style="font-family:'JetBrains Mono'">20.000.000 kWh</td>
-          <td style="font-family:'JetBrains Mono';color:var(--mint)">R$ 178.000,15</td>
+          <td><span style="font-size:10px;padding:2px 6px;background:rgba(59,123,255,0.1);color:var(--blue);border-radius:4px">ENERGIA</span>[cite: 7]</td>
+          <td style="font-family:'JetBrains Mono'">20000058[cite: 7]</td>
+          <td style="font-family:'JetBrains Mono'">20000000[cite: 7]</td>
+          <td style="font-family:'JetBrains Mono';color:var(--mint)">R$ 17800015.00[cite: 7]</td>
           <td style="text-align:right">
-            <button class="btn-lixeira" onclick="removerLinha(this)" title="Excluir histórico">🗑️ Excluir</button>
+            <button class="btn-lixeira-preta" onclick="excluirLinha(this)" title="Excluir histórico">🗑️ Apagar</button>
+          </td>
+        </tr>
+        <tr>
+          <td style="font-size:12px;color:var(--m)">11/10/2026, 15:45:58</td>
+          <td><span style="font-size:10px;padding:2px 6px;background:rgba(63,219,160,0.1);color:var(--mint);border-radius:4px">AGUA</span>[cite: 7]</td>
+          <td style="font-family:'JetBrains Mono'">20000058[cite: 7]</td>
+          <td style="font-family:'JetBrains Mono'">1246.94[cite: 7]</td>
+          <td style="font-family:'JetBrains Mono';color:var(--mint)">R$ 10599.03[cite: 7]</td>
+          <td style="text-align:right">
+            <button class="btn-lixeira-preta" onclick="excluirLinha(this)" title="Excluir histórico">🗑️ Apagar</button>
           </td>
         </tr>
       </tbody>
@@ -281,12 +304,12 @@ body{background:var(--navy);color:var(--p);font-family:'Inter',sans-serif;min-he
 </div>
 </div>
 
-<!-- SEÇÃO: APROVAÇÕES -->
+<!-- 3. SEÇÃO APROVAÇÕES (Com botões idênticos de editar e deletar / ações) -->
 <div class="section" id="s-aprovacoes">
 <div class="wrap">
   <div style="margin-bottom:16px">
-    <h2 style="font-family:'Sora';font-size:20px;font-weight:800">Aprovações Pendentes</h2>
-    <p style="color:var(--m);font-size:12px">Solicitações de alteração de titularidade e unidades</p>
+    <h2 style="font-family:'Sora';font-size:20px;font-weight:800">Aprovações</h2>
+    <p style="color:var(--m);font-size:12px">Gerenciamento de solicitações pendentes[cite: 8]</p>
   </div>
 
   <div class="panel" style="padding:0;overflow:hidden">
@@ -301,11 +324,12 @@ body{background:var(--navy);color:var(--p);font-family:'Inter',sans-serif;min-he
       </thead>
       <tbody>
         <tr>
-          <td><strong>Condomínio Bella Vista</strong></td>
-          <td>João Silva</td>
-          <td>Maria Souza</td>
-          <td style="text-align:right">
-            <button class="btn btn-mint btn-sm" onclick="toast('Aprovado com sucesso!');removerLinha(this)">Aprovar</button>
+          <td><strong>Condomínio Bella Vista</strong>[cite: 8]</td>
+          <td>João Silva[cite: 8]</td>
+          <td>Maria Souza[cite: 8]</td>
+          <td style="text-align:right;white-space:nowrap">
+            <button class="btn-acao-mini" onclick="toast('Aprovado!')">Aprovar</button>
+            <button class="btn-acao-mini deletar" onclick="excluirLinha(this)">Rejeitar</button>
           </td>
         </tr>
       </tbody>
@@ -327,39 +351,50 @@ function selTipo(tipo, el){
   el.classList.add('ativo');
 }
 
-function aoFoto(e){
+function aoSelecionarFoto(e){
   const f = e.target.files[0];
   if(!f) return;
-  const p = document.getElementById('dzPrev');
+  const p = document.getElementById('dzPreview');
   p.src = URL.createObjectURL(f);
   p.style.display = 'block';
-  document.getElementById('dzTxt').textContent = f.name;
-  toast('Foto carregada pelo scanner móvel.');
+  document.getElementById('dzLabel').textContent = f.name;
+  toast('Scanner móvel: Foto capturada com sucesso!');
 }
 
-function processarLeitura(){
-  document.getElementById('resConsumo').textContent = '142 m³';
-  document.getElementById('resTotal').textContent = 'R$ 1.254,80';
-  toast('Leitura processada com IA e padrões de medidor!');
+function processarLeituraIA(){
+  document.getElementById('resConsumo').textContent = '145.2 kWh';
+  document.getElementById('resTotal').textContent = 'R$ 1.306,80';
+  toast('Leitura processada com inteligência artificial!');
 }
 
-function abrirModalCliente(){ document.getElementById('modalCliente').classList.add('open'); }
-function fecharModal(id){ document.getElementById(id).classList.remove('open'); }
-function editarCliente(nome){
-  document.getElementById('modalClienteTitulo').textContent = 'Editar Cliente';
-  document.getElementById('cNome').value = nome;
-  abrirModalCliente();
+function abrirModalClienteNovo(){
+  document.getElementById('inpNome').value = '';
+  document.getElementById('inpCpf').value = '';
+  document.getElementById('inpMedidor').value = '';
+  document.getElementById('modalCliente').classList.add('open');
 }
-function salvarCliente(){
+
+function editarCliente(btn){
+  const tr = btn.closest('tr');
+  const nome = tr.querySelector('strong').innerText;
+  document.getElementById('inpNome').value = nome;
+  document.getElementById('modalCliente').classList.add('open');
+}
+
+function salvarClienteModal(){
   fecharModal('modalCliente');
   toast('Cliente salvo com sucesso!');
 }
 
-function removerLinha(btn){
+function fecharModal(id){
+  document.getElementById(id).classList.remove('open');
+}
+
+function excluirLinha(btn){
   const tr = btn.closest('tr');
   tr.style.opacity = '0';
   setTimeout(() => tr.remove(), 200);
-  toast('Registro removido.', 'info');
+  toast('Registro apagado com sucesso.');
 }
 
 function toast(msg){
