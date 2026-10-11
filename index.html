@@ -343,7 +343,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
       <div class="card">
         <div class="card-title">Integrações de Pagamento e Notificação</div>
         <div style="display:flex;flex-direction:column;gap:12px">
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:16px;background:var(--surface2);border-radius:12px"><div><strong>Asaas</strong><div style="font-size:12px;color:var(--muted)">PIX e Boletos Automáticos</div></div><button class="btn btn-ghost btn-sm" onclick="abrirConfigAsaas()">Configurar</button></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:16px;background:var(--surface2);border-radius:12px"><div><strong>Banco Inter</strong><div style="font-size:12px;color:var(--muted)">PIX, boletos e extrato</div></div><button class="btn btn-ghost btn-sm" onclick="abrirConfigInter()">Configurar</button></div>
           <div style="display:flex;justify-content:space-between;align-items:center;padding:16px;background:var(--surface2);border-radius:12px"><div><strong>WhatsApp Business API</strong><div style="font-size:12px;color:var(--muted)">Envio direto de faturas</div></div><button class="btn btn-ghost btn-sm" onclick="abrirConfigWhats()">Configurar</button></div>
         </div>
       </div>
@@ -718,6 +718,15 @@ function salvarConfig() {
   toast('Configurações salvas com sucesso!');
 }
 
+function abrirConfigInter() {
+  const clientId = prompt('Client ID do Banco Inter:');
+  const clientSecret = prompt('Client Secret:');
+  if (clientId && clientSecret) {
+    localStorage.setItem('inter_client_id', clientId);
+    localStorage.setItem('inter_client_secret', clientSecret);
+    toast('Banco Inter configurado');
+  }
+}
 function abrirModal(id) { document.getElementById(id).classList.add('open'); }
 function fecharModal(id) { document.getElementById(id).classList.remove('open'); }
 </script>
