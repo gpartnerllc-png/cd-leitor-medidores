@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Seter Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<style>
+:root {
+  --bg: #f5f5f7;
+  --surface: #ffffff;
+  --surface2: #fafafa;
+  --border: #e5e5ea;
+  --text: #1d1d1f;
+  --muted: #6e6e73;
+  --accent: #0071e3;
+  --accent-soft: #e8f2ff;
+  --mint: #34c759;
+  --amber: #ff9f0a;
+  --rose: #ff3b30;
+  --sidebar: 220px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; min-height: 100vh; }
+.globe { position: fixed; inset: 0; pointer-events: none; z-index: 0; background: radial-gradient(ellipse 60% 40% at 90% 10%, rgba(0,113,227,0.06), transparent 50%); }
+.layout { display: flex; min-height: 100vh; position: relative; z-index: 1; }
+.sidebar { width: var(--sidebar); background: var(--surface); border-right: 1px solid var(--border); padding: 16px 10px; position: fixed; height: 100vh; overflow-y: auto; }
+.logo { font-weight: 700; font-size: 17px; padding: 8px 12px 20px; display: flex; align-items: center; gap: 8px; color: var(--text); }
+.logo-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--mint); }
+.nav-item { display: flex; align-items: center; gap: 8px; padding: 9px 12px; border-radius: 8px; cursor: pointer; color: var(--muted); font-size: 13.5px; font-weight: 500; margin-bottom: 2px; }
+.nav-item:hover, .nav-item.active { background: var(--accent-soft); color: var(--accent); }
+.main { margin-left: var(--sidebar); flex: 1; padding: 28px 32px; }
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+.header h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.02em; }
+.badge { font-size: 11px; padding: 4px 10px; border-radius: 20px; background: var(--accent-soft); color: var(--accent); font-weight: 500; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+@media (max-width: 900px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+.stat { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px; }
+.stat-label { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+.stat-val { font-family: 'JetBrains Mono', monospace; font-size: 26px; font-weight: 600; }
+.grid2 { display: grid; grid-template-columns: 1.15fr 1fr; gap: 18px; }
+@media (max-width: 800px) { .grid2 { grid-template-columns: 1fr; } }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 22px; }
+.card-title { font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.04em; }
+.field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.field label { font-size: 12px; font-weight: 500; color: var(--muted); }
+.field input, .field select { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 11px 14px; color: var(--text); font-size: 14px; outline: none; width: 100%; }
+.field input:focus, .field select:focus { border-color: var(--accent); }
+.btn { padding: 11px 18px; border-radius: 10px; border: none; font-weight: 600; font-size: 14px; cursor: pointer; }
+.btn-prim { background: var(--accent); color: #fff; }
+.btn-prim:hover { filter: brightness(1.05); }
+.btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+.btn-sm { padding: 7px 14px; font-size: 12.5px; }
+.visor { background: #f0f0f5; border-radius: 12px; padding: 18px; display: flex; justify-content: center; gap: 5px; border: 1px solid var(--border); }
+.digito { font-family: 'JetBrains Mono', monospace; font-size: 34px; font-weight: 600; width: 32px; text-align: center; color: #c7c7cc; }
+.digito.on { color: var(--accent); }
+.section { display: none; }
+.section.active { display: block; }
+.tbl { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.tbl th { text-align: left; padding: 10px; color: var(--muted); font-size: 12px; font-weight: 500; border-bottom: 1px solid var(--border); }
+.tbl td { padding: 12px 10px; border-bottom: 1px solid var(--border); }
+.period-tabs { display: flex; gap: 8px; margin-bottom: 18px; }
+.period-tab { padding: 7px 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--muted); font-size: 13px; cursor: pointer; }
+.period-tab.active { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+.login-wrap { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+.login-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 36px; width: 100%; max-width: 380px; }
+.toast-area { position: fixed; bottom: 20px; right: 20px; z-index: 999; }
+.toast { padding: 12px 16px; border-radius: 10px; font-size: 13.5px; margin-top: 8px; background: var(--surface); border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+.fatura-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13.5px; }
+.total-box { margin-top: 12px; padding: 14px; background: rgba(52,199,89,0.1); border-radius: 10px; display: flex; justify-content: space-between; align-items: center; }
+.total-val { font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 600; color: var(--mint); }
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="globe"></div>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="loginScreen">
+  <div class="login-card">
+    <div style="text-align:center;margin-bottom:24px">
+      <div class="logo" style="justify-content:center"><div class="logo-dot"></div> Seter Pro</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:4px">Acesso ao sistema</div>
+    </div>
+    <div class="field"><label>Usuário</label><input id="loginUser" placeholder="admin ou user" /></div>
+    <div class="field"><label>Senha</label><input id="loginPass" type="password" placeholder="••••••" /></div>
+    <button class="btn btn-prim" style="width:100%" onclick="fazerLogin()">Entrar</button>
+    <div style="font-size:12px;color:var(--muted);margin-top:16px;text-align:center">admin / admin123 · user / user123</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="layout hidden" id="appScreen">
+  <aside class="sidebar">
+    <div class="logo"><div class="logo-dot"></div> Seter Pro</div>
+    <div class="nav-item active" onclick="ir('leitura',this)">Leitura</div>
+    <div class="nav-item" onclick="ir('dashboard',this)">Dashboard</div>
+    <div class="nav-item" onclick="ir('clientes',this)">Clientes</div>
+    <div class="nav-item" onclick="ir('unidades',this)">Unidades</div>
+    <div class="nav-item" onclick="ir('historico',this)">Histórico</div>
+    <div class="nav-item" onclick="ir('dre',this)">DRE</div>
+    <div class="nav-item admin-only" onclick="ir('aprovacoes',this)">Aprovações</div>
+    <div class="nav-item admin-only" onclick="ir('integracoes',this)">Integrações</div>
+    <div class="nav-item admin-only" onclick="ir('config',this)">Config</div>
+    <div style="margin-top:24px;padding:0 12px">
+      <div id="userInfo" style="font-size:12px;color:var(--muted);margin-bottom:8px"></div>
+      <button class="btn btn-ghost btn-sm" style="width:100%" onclick="logout()">Sair</button>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="header">
+      <h1 id="pageTitle">Leitura</h1>
+      <div class="badge" id="roleBadge">—</div>
+    </div>
+
+    <section class="section active" id="sec-leitura">
+      <div class="grid2">
+        <div class="card">
+          <div class="card-title">Nova Leitura</div>
+          <div class="field"><label>Buscar cliente</label><input id="busca" placeholder="Nome ou CPF" oninput="buscarCliente()" /></div>
+          <div id="clienteInfo" style="display:none;margin-bottom:14px;padding:12px;background:var(--accent-soft);border-radius:10px;font-size:13px"></div>
+          <div class="field"><label>Tipo</label><select id="tipo"><option value="AGUA">Água</option><option value="ENERGIA">Energia</option></select></div>
+          <div class="field"><label>Leitura anterior</label><input type="number" id="anterior" value="0" /></div>
+          <div class="field"><label>Foto do medidor</label><input type="file" id="foto" accept="image/*" /></div>
+          <button class="btn btn-prim" style="width:100%" onclick="processar()">Processar com OCR</button>
+          <div id="status" style="font-size:12px;color:var(--muted);margin-top:10px;text-align:center"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Resultado</div>
+          <div class="visor"><div class="digito">0</div><div class="digito">0</div><div class="digito">0</div><div class="digito">0</div><div class="digito">0</div><div class="digito">0</div></div>
+          <div id="fatura" style="margin-top:18px;display:none">
+            <div class="fatura-row"><span>Leitura</span><span id="fLei">—</span></div>
+            <div class="fatura-row"><span>Consumo</span><span id="fCons">—</span></div>
+            <div class="total-box"><span>Total</span><span class="total-val" id="fTotal">R$ 0</span></div>
+            <div style="display:flex;gap:8px;margin-top:14px">
+              <button class="btn btn-ghost btn-sm" onclick="toast('PIX gerado')">Gerar PIX</button>
+              <button class="btn btn-ghost btn-sm" onclick="toast('WhatsApp')">WhatsApp</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="sec-dashboard">
+      <div class="period-tabs">
+        <button class="period-tab active" onclick="periodo('dia',this)">Dia</button>
+        <button class="period-tab" onclick="periodo('semana',this)">Semana</button>
+        <button class="period-tab" onclick="periodo('mes',this)">Mês</button>
+        <button class="period-tab" onclick="periodo('ano',this)">Ano</button>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="stat-label">Leituras</div><div class="stat-val" id="stL">0</div></div>
+        <div class="stat"><div class="stat-label">Água (m³)</div><div class="stat-val" id="stA">0</div></div>
+        <div class="stat"><div class="stat-label">Energia (kWh)</div><div class="stat-val" id="stE">0</div></div>
+        <div class="stat"><div class="stat-label">Receita</div><div class="stat-val" id="stR">R$ 0</div></div>
+      </div>
+    </section>
+
+    <section class="section" id="sec-clientes">
+      <div class="card">
+        <div class="card-title" style="display:flex;justify-content:space-between"><span>Clientes</span><button class="btn btn-prim btn-sm" onclick="novoCliente()">+ Novo</button></div>
+        <table class="tbl"><thead><tr><th>Nome</th><th>CPF</th><th>Unidade</th><th></th></tr></thead><tbody id="tbC"></tbody></table>
+      </div>
+    </section>
+
+    <section class="section" id="sec-unidades">
+      <div class="card">
+        <div class="card-title">Unidades</div>
+        <div class="field"><label>Nome</label><input id="uNome" /></div>
+        <div class="field"><label>Tipo</label><select id="uTipo"><option>Condomínio</option><option>Empresa</option><option>Residência</option></select></div>
+        <div class="field"><label>CNPJ / CPF</label><input id="uDoc" /></div>
+        <button class="btn btn-prim" onclick="addUnidade()">Cadastrar</button>
+        <table class="tbl" style="margin-top:16px"><thead><tr><th>Nome</th><th>Tipo</th><th>Doc</th></tr></thead><tbody id="tbU"></tbody></table>
+      </div>
+    </section>
+
+    <section class="section" id="sec-historico">
+      <div class="card"><div class="card-title">Histórico</div><table class="tbl"><thead><tr><th>Data</th><th>Tipo</th><th>Leitura</th><th>Consumo</th><th>Total</th></tr></thead><tbody id="tbH"></tbody></table></div>
+    </section>
+
+    <section class="section" id="sec-dre">
+      <div class="stats">
+        <div class="stat"><div class="stat-label">Receita</div><div class="stat-val" id="dreR">R$ 0</div></div>
+        <div class="stat"><div class="stat-label">Resultado</div><div class="stat-val" id="dreRes">R$ 0</div></div>
+      </div>
+    </section>
+
+    <section class="section" id="sec-aprovacoes">
+      <div class="card"><div class="card-title">Aprovações de troca de titular</div><table class="tbl"><thead><tr><th>Cliente</th><th>De</th><th>Para</th><th></th></tr></thead><tbody id="tbA"></tbody></table></div>
+    </section>
+
+    <section class="section" id="sec-integracoes">
+      <div class="card">
+        <div class="card-title">Integrações</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--surface2);border-radius:10px"><div><strong>Asaas</strong><div style="font-size:12px;color:var(--muted)">PIX e boletos</div></div><button class="btn btn-ghost btn-sm" onclick="toast('Asaas OK')">Configurar</button></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--surface2);border-radius:10px"><div><strong>WhatsApp</strong><div style="font-size:12px;color:var(--muted)">Faturas</div></div><button class="btn btn-ghost btn-sm" onclick="toast('WhatsApp OK')">Configurar</button></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--surface2);border-radius:10px"><div><strong>D1</strong><div style="font-size:12px;color:var(--muted)">Leituras</div></div><span style="color:var(--mint);font-size:12px">Ativo</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="sec-config">
+      <div class="card"><div class="card-title">Configurações</div><div class="field"><label>Empresa</label><input placeholder="Seter Pro" /></div><button class="btn btn-prim" onclick="toast('Salvo')">Salvar</button></div>
+    </section>
+  </main>
+</div>
+<div class="toast-area" id="toasts"></div>
+
+<script>
+const API = 'https://cd-leitor-medidores.contatodroppfy.workers.dev';
+let role = null;
+let clientes = JSON.parse(localStorage.getItem('seter_cli')||'[]');
+let unidades = JSON.parse(localStorage.getItem('seter_uni')||'[]');
+let historico = JSON.parse(localStorage.getItem('seter_hist')||'[]');
+let aprovacoes = JSON.parse(localStorage.getItem('seter_apr')||'[]');
+let clienteAtual = null;
+
+function fazerLogin() {
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value;
+  if (u === 'admin' && p === 'admin123') role = 'admin';
+  else if (u === 'user' && p === 'user123') role = 'user';
+  else { toast('Credenciais inválidas'); return; }
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('appScreen').classList.remove('hidden');
+  document.getElementById('userInfo').textContent = u + ' · ' + role;
+  document.getElementById('roleBadge').textContent = role === 'admin' ? 'Admin' : 'Usuário';
+  document.querySelectorAll('.admin-only').forEach(el => {
+    el.style.display = role === 'admin' ? '' : 'none';
+  });
+  toast('Bem-vindo, ' + u);
+}
+
+function logout() {
+  role = null;
+  document.getElementById('appScreen').classList.add('hidden');
+  document.getElementById('loginScreen').classList.remove('hidden');
+}
+
+function ir(sec, el) {
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('sec-'+sec).classList.add('active');
+  el.classList.add('active');
+  document.getElementById('pageTitle').textContent = {leitura:'Leitura',dashboard:'Dashboard',clientes:'Clientes',unidades:'Unidades',historico:'Histórico',dre:'DRE',aprovacoes:'Aprovações',integracoes:'Integrações',config:'Config'}[sec]||sec;
+  if(sec==='clientes') renderC();
+  if(sec==='unidades') renderU();
+  if(sec==='historico') renderH();
+  if(sec==='dashboard') dash();
+  if(sec==='aprovacoes') renderA();
+}
+
+function toast(msg) {
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(()=>el.remove(), 3000);
+}
+
+function buscarCliente() {
+  const q = document.getElementById('busca').value.toLowerCase();
+  const found = clientes.find(c => (c.nome+(c.cpf||'')).toLowerCase().includes(q));
+  const info = document.getElementById('clienteInfo');
+  if (found && q) {
+    clienteAtual = found;
+    info.style.display = 'block';
+    info.innerHTML = `<strong>${found.nome}</strong><br>${found.cpf||''} · ${found.unidade||''}`;
+  } else { info.style.display = 'none'; clienteAtual = null; }
+}
+
+async function processar() {
+  const file = document.getElementById('foto').files[0];
+  const anterior = Number(document.getElementById('anterior').value||0);
+  const tipo = document.getElementById('tipo').value;
+  const status = document.getElementById('status');
+  if (!file) return toast('Selecione a foto');
+  status.textContent = 'OCR...';
+  try {
+    const { data:{text} } = await Tesseract.recognize(file, 'eng');
+    const nums = text.match(/\d{3,8}/g);
+    if (!nums) { status.textContent = 'Não leu'; return; }
+    const leitura = parseInt(nums.sort((a,b)=>b.length-a.length)[0],10);
+    document.querySelectorAll('.digito').forEach((d,i)=>{ d.textContent = String(leitura).padStart(6,'0')[i]; d.classList.add('on'); });
+    const fd = new FormData();
+    fd.append('tipo', tipo); fd.append('leituraAnterior', anterior); fd.append('leituraOCR', leitura);
+    const res = await fetch(API+'/api/ler-medidor', {method:'POST', body:fd});
+    const data = await res.json();
+    const consumo = data.fatura?.consumo ?? (leitura-anterior);
+    const total = data.fatura?.total ?? 0;
+    historico.unshift({data:new Date().toISOString(), tipo, leitura, consumo, total});
+    localStorage.setItem('seter_hist', JSON.stringify(historico));
+    document.getElementById('fLei').textContent = leitura;
+    document.getElementById('fCons').textContent = consumo;
+    document.getElementById('fTotal').textContent = 'R$ '+total.toFixed(2);
+    document.getElementById('fatura').style.display = 'block';
+    status.textContent = 'Concluído';
+    toast('Leitura OK');
+  } catch(e) { status.textContent = e.message; }
+}
+
+function periodo(p, el) {
+  document.querySelectorAll('.period-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  dash(p);
+}
+function dash(p='mes') {
+  const now = new Date();
+  const f = historico.filter(h => {
+    const d = new Date(h.data);
+    if(p==='dia') return d.toDateString()===now.toDateString();
+    if(p==='semana') return (now-d)<7*864e5;
+    if(p==='mes') return d.getMonth()===now.getMonth();
+    return d.getFullYear()===now.getFullYear();
+  });
+  document.getElementById('stL').textContent = f.length;
+  document.getElementById('stA').textContent = f.filter(h=>h.tipo==='AGUA').reduce((a,h)=>a+h.consumo,0);
+  document.getElementById('stE').textContent = f.filter(h=>h.tipo==='ENERGIA').reduce((a,h)=>a+h.consumo,0);
+  const rec = f.reduce((a,h)=>a+h.total,0);
+  document.getElementById('stR').textContent = 'R$ '+rec.toFixed(0);
+  document.getElementById('dreR').textContent = 'R$ '+rec.toFixed(0);
+  document.getElementById('dreRes').textContent = 'R$ '+rec.toFixed(0);
+}
+
+function renderC() {
+  document.getElementById('tbC').innerHTML = clientes.map((c,i)=>`<tr><td>${c.nome}</td><td>${c.cpf||'—'}</td><td>${c.unidade||'—'}</td><td><button class="btn btn-ghost btn-sm" onclick="clientes.splice(${i},1);localStorage.setItem('seter_cli',JSON.stringify(clientes));renderC()">Excluir</button></td></tr>`).join('') || '<tr><td colspan="4" style="text-align:center;color:var(--muted)">Nenhum</td></tr>';
+}
+function novoCliente() {
+  const nome = prompt('Nome:'); if(!nome) return;
+  clientes.push({nome, cpf:'', unidade:''});
+  localStorage.setItem('seter_cli', JSON.stringify(clientes));
+  renderC(); toast('Cliente adicionado');
+}
+function renderU() {
+  document.getElementById('tbU').innerHTML = unidades.map(u=>`<tr><td>${u.nome}</td><td>${u.tipo}</td><td>${u.doc}</td></tr>`).join('') || '<tr><td colspan="3" style="text-align:center;color:var(--muted)">Nenhuma</td></tr>';
+}
+function addUnidade() {
+  const nome = document.getElementById('uNome').value.trim(); if(!nome) return toast('Informe o nome');
+  unidades.push({nome, tipo:document.getElementById('uTipo').value, doc:document.getElementById('uDoc').value});
+  localStorage.setItem('seter_uni', JSON.stringify(unidades));
+  renderU(); toast('Unidade OK');
+}
+function renderH() {
+  document.getElementById('tbH').innerHTML = historico.slice(0,40).map(h=>`<tr><td>${new Date(h.data).toLocaleString('pt-BR')}</td><td>${h.tipo}</td><td>${h.leitura}</td><td>${h.consumo}</td><td>R$ ${h.total.toFixed(2)}</td></tr>`).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--muted)">Sem dados</td></tr>';
+}
+function renderA() {
+  document.getElementById('tbA').innerHTML = aprovacoes.map((a,i)=>`<tr><td>${a.cliente}</td><td>${a.de}</td><td>${a.para}</td><td><button class="btn btn-prim btn-sm" onclick="aprovacoes.splice(${i},1);localStorage.setItem('seter_apr',JSON.stringify(aprovacoes));renderA();toast('Aprovado')">Aprovar</button></td></tr>`).join('') || '<tr><td colspan="4" style="text-align:center;color:var(--muted)">Nenhuma</td></tr>';
+}
+</script>
+</body>
+</html>
