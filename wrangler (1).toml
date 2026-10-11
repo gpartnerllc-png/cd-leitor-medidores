@@ -1,0 +1,7 @@
+name = "cd-leitor-medidores"
+main = "worker.js"
+compatibility_date = "2024-10-01"
+
+[vars]
+# JWT_SECRET, WHATSAPP_PHONE_ID, WHATSAPP_TOKEN, WHATSAPP_VERIFY_TOKEN, LLM_API_KEY
+# Configure como secrets no dashboard Cloudflare ou via wrangler secret put
