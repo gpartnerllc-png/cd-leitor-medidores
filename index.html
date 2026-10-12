@@ -173,7 +173,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
     <div class="field"><label>Usuário</label><input id="loginUser" placeholder="admin ou user"/></div>
     <div class="field"><label>Senha</label><input id="loginPass" type="password" placeholder="••••••" autocomplete="current-password"/></div>
     <button class="btn btn-prim btn-full" onclick="fazerLogin()" style="margin-top:8px">Entrar na Plataforma</button>
-    <div style="font-size:11.5px;color:var(--muted);margin-top:16px;text-align:center">Admin / 323619admin323619</div>
+    <div style="font-size:11.5px;color:var(--muted);margin-top:16px;text-align:center">admin / admin123 · user / user123</div>
   </div>
 </div>
 
@@ -184,7 +184,6 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
     <div class="nav-item active" onclick="ir('leitura',this)">Leitura</div>
     <div class="nav-item" onclick="ir('dashboard',this)">Dashboard</div>
     <div class="nav-item" onclick="ir('clientes',this)">Clientes</div>
-    <div class="nav-item" onclick="ir('unidades',this)">Unidades</div>
     <div class="nav-item" onclick="ir('historico',this)">Histórico</div>
     <div class="nav-item" onclick="ir('dre',this)">DRE</div>
     <div class="nav-item admin-only" onclick="ir('aprovacoes',this)">Aprovações</div>
@@ -306,24 +305,6 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
       </div>
     </section>
 
-    <!-- UNIDADES -->
-    <section class="section" id="sec-unidades">
-      <div class="grid2">
-        <div class="card">
-          <div class="card-title">Cadastrar Unidade / Condomínio</div>
-          <div class="field"><label>Nome da Unidade</label><input id="uNome"/></div>
-          <div class="field"><label>Tipo</label><select id="uTipo"><option>Condomínio</option><option>Empresa</option><option>Residência</option></select></div>
-          <div class="field"><label>CEP da Unidade</label><input id="uCep" placeholder="00000-000" oninput="if(this.value.replace(/\\D/g,'').length>=8)preencherUnidadePorCep()"/></div>
-          <div class="field"><label>CNPJ / CPF</label><input id="uDoc" placeholder="00.000.000/0001-00"/></div>
-          <button class="btn btn-prim btn-full" onclick="addUnidade()">Cadastrar Unidade</button>
-        </div>
-        <div class="card" style="padding:0;overflow:hidden">
-          <div class="card-title" style="padding:24px 24px 0 24px">Unidades Ativas</div>
-          <table class="tbl"><thead><tr><th>Nome</th><th>Tipo</th><th>Doc</th></tr></thead><tbody id="tbU"></tbody></table>
-        </div>
-      </div>
-    </section>
-
     <!-- 2. TELA HISTÓRICO (Com lixeira preta suave no código para deletar) -->
     <section class="section" id="sec-historico">
       <div class="card" style="padding:0;overflow:hidden">
@@ -365,26 +346,26 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
       </div>
     </section>
 
-    <!-- CONFIG -->
+    <!-- CONFIG / CADASTRO ÚNICO -->
     <section class="section" id="sec-config">
       <div class="card" style="max-width:900px">
-        <div class="card-title">Configurações Gerais</div>
+        <div class="card-title">Cadastro Único · Cliente / Unidade / Região</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
           <div>
-            <div class="field"><label>CEP da Unidade</label><input id="cfgCep" placeholder="00000-000" oninput="if(this.value.replace(/\\D/g,'').length>=8)buscarRegiaoPorCep()"/></div>
-            <div class="field"><label>Empresa Água (região)</label><select id="cfgEmpresaAgua"></select></div>
-            <div class="field"><label>Empresa Energia (região)</label><select id="cfgEmpresaEnergia"></select></div>
-            <div class="field"><label>CNPJ</label><input id="cfgCnpj" placeholder="00.000.000/0001-00"/></div>
-            <div class="field"><label>Responsável Técnico</label><input id="cfgResp" placeholder="Nome do leiturista"/></div>
-            <div class="field"><label>Dias até vencimento</label><input type="number" id="cfgVenc" value="10"/></div>
-            <button class="btn btn-prim" onclick="salvarConfig()">Salvar</button>
+            <div class="field"><label>Nome da Unidade / Cliente</label><input id="cfgNome" placeholder="Condomínio, Empresa ou Residência"/></div>
+            <div class="field"><label>Tipo</label><select id="cfgTipo"><option>Residência</option><option>Condomínio</option><option>Empresa</option></select></div>
+            <div class="field"><label>CNPJ / CPF</label><input id="cfgDoc" placeholder="00.000.000/0001-00" onblur="buscarCnpj()"/></div>
+            <div class="field"><label>CEP</label><input id="cfgCep" placeholder="00000-000" oninput="if(this.value.replace(/\\D/g,'').length>=8)buscarRegiaoPorCep()"/></div>
+            <div id="cfgEmpresaInfo" style="font-size:12px;color:var(--muted);margin-bottom:12px;min-height:20px"></div>
+            <button class="btn btn-prim" onclick="salvarCadastroUnico()">Salvar Cadastro</button>
           </div>
           <div>
+            <div class="field"><label>Empresa Água</label><select id="cfgEmpresaAgua"></select></div>
+            <div class="field"><label>Empresa Energia</label><select id="cfgEmpresaEnergia"></select></div>
             <div class="field"><label>Tarifa Água (R$/m³)</label><input type="number" id="cfgTarifaAgua" value="8.50" step="0.1"/></div>
-            <div class="field"><label>Tarifa Esgoto (R$/m³)</label><input type="number" id="cfgTarifaEsgoto" value="4.61" step="0.1"/></div>
             <div class="field"><label>Tarifa Energia (R$/kWh)</label><input type="number" id="cfgTarifaEnergia" value="0.89" step="0.01"/></div>
-            <div class="field"><label>COSIP estimada (R$/mês)</label><input type="number" id="cfgCosip" value="16.56" step="0.1"/></div>
-            <button class="btn btn-ghost" onclick="salvarTarifas()">Salvar tarifas</button>
+            <div class="field"><label>COSIP (R$/mês)</label><input type="number" id="cfgCosip" value="16.56" step="0.1"/></div>
+            <div class="field"><label>Responsável Técnico</label><input id="cfgResp" placeholder="Nome do leiturista"/></div>
           </div>
         </div>
         <div style="margin-top:20px;display:flex;gap:8px;flex-wrap:wrap">
@@ -452,7 +433,7 @@ function ir(sec, el) {
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('sec-'+sec).classList.add('active');
   el.classList.add('active');
-  document.getElementById('pageTitle').textContent = {leitura:'Leitura',dashboard:'Dashboard',clientes:'Clientes',unidades:'Unidades',historico:'Histórico',dre:'DRE',aprovacoes:'Aprovações',integracoes:'Integrações',config:'Configurações'}[sec]||sec;
+  document.getElementById('pageTitle').textContent = {leitura:'Leitura',dashboard:'Dashboard',clientes:'Clientes',historico:'Histórico',dre:'DRE',aprovacoes:'Aprovações',integracoes:'Integrações',config:'Cadastro'}[sec]||sec;
   if(sec==='clientes') renderC();
   if(sec==='unidades') renderU();
   if(sec==='historico') renderH();
@@ -601,7 +582,7 @@ function buscarCliente() {
     clienteAtual = found;
     info.style.display = 'block';
     const reg = found.uf ? ` · ${found.uf} · ${found.empresaAgua || ''}` : '';
-    info.innerHTML = `<strong>${found.nome}</strong><br>${found.doc || found.cpf || ''}${reg}`;
+    info.innerHTML = `<strong>${found.nome}</strong><br>${found.doc || found.cpf || ''} · ${found.uf || found.tipo || ''}<br><span style="font-size:11px">Água: ${found.empresaAgua || '—'} · Energia: ${found.empresaEnergia || '—'}</span>`;
     if (found.tarifaAgua) {
       const cfg = JSON.parse(localStorage.getItem('seter_config')||'{}');
       cfg.tarifaAgua = found.tarifaAgua;
@@ -986,26 +967,30 @@ function initNeural() {
   resize(); spawn(); draw();
   addEventListener('resize', () => { resize(); spawn(); });
 }
-function salvarConfig() {
+function salvarCadastroUnico() {
+  const nome = document.getElementById('cfgNome').value.trim();
+  const tipo = document.getElementById('cfgTipo').value;
+  const doc = document.getElementById('cfgDoc').value.trim();
+  const cep = document.getElementById('cfgCep').value;
+  if (!nome) { toast('Informe o nome'); return; }
   const cfg = {
-    empresa: document.getElementById('cfgEmpresa')?.value || 'Seter Pro',
-    cnpj: document.getElementById('cfgCnpj')?.value || '',
-    resp: document.getElementById('cfgResp')?.value || '',
-    venc: document.getElementById('cfgVenc')?.value || 10,
-    tarifaAgua: document.getElementById('cfgTarifaAgua')?.value || 8.5,
-    tarifaEsgoto: document.getElementById('cfgTarifaEsgoto')?.value || 4.6,
-    tarifaEnergia: document.getElementById('cfgTarifaEnergia')?.value || 0.89,
-    cosip: document.getElementById('cfgCosip')?.value || 16,
-    cep: document.getElementById('cfgCep')?.value || '',
-    empresaAgua: document.getElementById('cfgEmpresaAgua')?.value || 'saneago',
-    empresaEnergia: document.getElementById('cfgEmpresaEnergia')?.value || 'equatorial-go'
+    nome, tipo, doc, cep,
+    empresaAgua: document.getElementById('cfgEmpresaAgua')?.value || '',
+    empresaEnergia: document.getElementById('cfgEmpresaEnergia')?.value || '',
+    tarifaAgua: parseFloat(document.getElementById('cfgTarifaAgua')?.value) || 8.5,
+    tarifaEnergia: parseFloat(document.getElementById('cfgTarifaEnergia')?.value) || 0.89,
+    cosip: parseFloat(document.getElementById('cfgCosip')?.value) || 16,
+    resp: document.getElementById('cfgResp')?.value || ''
   };
   localStorage.setItem('seter_config', JSON.stringify(cfg));
-  toast('Configurações salvas');
-  popularSelectAgua();
+  // Também salva como cliente para a busca
+  const idx = clientes.findIndex(c => (c.doc || c.cpf || '').replace(/\D/g,'') === doc.replace(/\D/g,''));
+  const registro = { nome, cpf: doc, unidade: tipo, ...cfg };
+  if (idx >= 0) clientes[idx] = registro; else clientes.push(registro);
+  localStorage.setItem('seter_cli', JSON.stringify(clientes));
+  renderC();
+  toast('Cadastro único salvo — região e tarifas ativas');
 }
-function salvarTarifas() { salvarConfig(); }
-
 function abrirConfigInter() {
   const clientId = prompt('Client ID do Banco Inter:');
   const clientSecret = prompt('Client Secret:');
