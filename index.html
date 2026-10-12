@@ -227,7 +227,17 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
             </div>
           </div>
 
-          <label class="dropzone">
+          <div class="field">
+            <label>Modo de captura</label>
+            <select id="modoCaptura" onchange="mudarModo()">
+              <option value="foto">Foto do visor (OCR)</option>
+              <option value="qr">QR Code do medidor</option>
+            </select>
+          </div>
+          <div id="campoQR" style="display:none" class="field">
+            <label>Código QR do medidor</label>
+            <input id="qrCode" placeholder="Escaneie ou cole o QR da unidade" />
+          </div>
             <input type="file" id="foto" accept="image/*" capture="environment" onchange="aoSelecionarFoto(event)"/>
             <div style="font-size:30px;color:var(--accent);margin-bottom:8px">📷</div>
             <div class="dz-label" id="dzLabel">Abrir Câmera do Smartphone / Enviar Foto</div>
@@ -433,7 +443,16 @@ function toast(msg) {
   setTimeout(()=>el.remove(), 3500);
 }
 
-function selecionarTipo(tipo, el) {
+function mudarModo() {
+  const modo = document.getElementById('modoCaptura').value;
+  document.getElementById('campoQR').style.display = modo === 'qr' ? '' : 'none';
+}
+function verificarAnomalia(consumo, tipo) {
+  const media = historico.filter(h => h.tipo === tipo).slice(0,5).reduce((a,h)=>a+h.consumo,0) / 5 || consumo;
+  if (consumo > media * 2.5) return 'Consumo muito acima da média';
+  if (consumo === 0) return 'Consumo zerado — verificar';
+  return null;
+}
   tipoSelecionado = tipo;
   document.querySelectorAll('.tipo-btn').forEach(b => b.classList.remove('ativo'));
   el.classList.add('ativo');
@@ -505,6 +524,9 @@ async function processarLeituraDael() {
     const consumo = Math.max(0, leitura - anterior);
     const tarifa = calcularTarifa(tipoSelecionado, document.getElementById('distSelect').value, bandeiraAtual);
     const total = consumo * tarifa.valor + tarifa.fixo;
+    
+    const anomalia = verificarAnomalia(consumo, tipoSelecionado);
+    if (anomalia) toast('⚠️ ' + anomalia);
     
     faturaAtual = { tipo: tipoSelecionado, leitura, consumo, total, tarifa: tarifa.valor };
     
