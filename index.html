@@ -160,7 +160,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
 .bandeira-item.sel { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
 </style>
 </head>
-<canvas id="neuralCanvas" style="position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.6"></canvas>
+<canvas id="neuralCanvas" style="position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.85"></canvas>
 <button id="btnMenu" class="btn btn-prim btn-sm" style="position:fixed;top:12px;left:12px;z-index:9999;display:none" onclick="toggleSidebar()">☰</button>
 
 <!-- LOGIN -->
@@ -217,19 +217,9 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
 
           <div class="field"><label>Leitura anterior</label><input type="number" id="anterior" value="12751"/></div>
           
-          <div class="field">
+          <div class="field" style="display:none">
             <label id="distLabel">Concessionária / Distribuidora</label>
-            <select id="distSelect">
-              <option value="saneago">Saneago (GO)</option>
-              <option value="sanepar">Sanepar (PR)</option>
-              <option value="sabesp">Sabesp (SP)</option>
-              <option value="caesb">Caesb (DF)</option>
-              <option value="embasa">Embasa (BA)</option>
-              <option value="cagece">Cagece (CE)</option>
-              <option value="compesa">Compesa (PE)</option>
-              <option value="caesb">Caesb (DF)</option>
-              <option value="outra">Outra (tarifa manual)</option>
-            </select>
+            <select id="distSelect"></select>
           </div>
 
           <div id="bandeiraWrap" style="display:none;margin-bottom:16px">
@@ -323,6 +313,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
           <div class="card-title">Cadastrar Unidade / Condomínio</div>
           <div class="field"><label>Nome da Unidade</label><input id="uNome"/></div>
           <div class="field"><label>Tipo</label><select id="uTipo"><option>Condomínio</option><option>Empresa</option><option>Residência</option></select></div>
+          <div class="field"><label>CEP da Unidade</label><input id="uCep" placeholder="00000-000" oninput="if(this.value.replace(/\\D/g,'').length>=8)preencherUnidadePorCep()"/></div>
           <div class="field"><label>CNPJ / CPF</label><input id="uDoc" placeholder="00.000.000/0001-00"/></div>
           <button class="btn btn-prim btn-full" onclick="addUnidade()">Cadastrar Unidade</button>
         </div>
@@ -380,7 +371,9 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
         <div class="card-title">Configurações Gerais</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
           <div>
-            <div class="field"><label>Nome da Empresa</label><input id="cfgEmpresa" value="Seter Pro · Dael"/></div>
+            <div class="field"><label>CEP da Unidade</label><input id="cfgCep" placeholder="00000-000" oninput="if(this.value.replace(/\\D/g,'').length>=8)buscarRegiaoPorCep()"/></div>
+            <div class="field"><label>Empresa Água (região)</label><select id="cfgEmpresaAgua"></select></div>
+            <div class="field"><label>Empresa Energia (região)</label><select id="cfgEmpresaEnergia"></select></div>
             <div class="field"><label>CNPJ</label><input id="cfgCnpj" placeholder="00.000.000/0001-00"/></div>
             <div class="field"><label>Responsável Técnico</label><input id="cfgResp" placeholder="Nome do leiturista"/></div>
             <div class="field"><label>Dias até vencimento</label><input type="number" id="cfgVenc" value="10"/></div>
@@ -582,21 +575,12 @@ async function processarLeituraDael() {
 }
 
 function calcularTarifa(tipo, dist, bandeira) {
-  const tarifas = {
-    AGUA: {
-      saneago: { valor: 8.42, fixo: 17.50 },
-      sanepar: { valor: 7.85, fixo: 15.20 },
-      sabesp: { valor: 9.10, fixo: 18.00 },
-      caesb: { valor: 8.20, fixo: 16.80 }
-    },
-    ENERGIA: {
-      'equatorial-go': { valor: 0.892, fixo: 12.50 },
-      'enel-sp': { valor: 0.789, fixo: 11.20 }
-    }
-  };
-  const base = tarifas[tipo]?.[dist] || (tipo === 'AGUA' ? { valor: 8.50, fixo: 17.00 } : { valor: 0.85, fixo: 12.00 });
-  const acrescimoBandeira = { verde: 0, amarela: 0.018, verm1: 0.039, verm2: 0.094 }[bandeira] || 0;
-  return { valor: base.valor + (tipo === 'ENERGIA' ? acrescimoBandeira : 0), fixo: base.fixo };
+  const cfg = JSON.parse(localStorage.getItem('seter_config')||'{}');
+  const baseAgua = parseFloat(cfg.tarifaAgua) || 8.50;
+  const baseEnergia = parseFloat(cfg.tarifaEnergia) || 0.89;
+  const acrescimo = { verde: 0, amarela: 0.018, verm1: 0.039, verm2: 0.094 }[bandeira] || 0;
+  if (tipo === 'AGUA') return { valor: baseAgua, fixo: 17 };
+  return { valor: baseEnergia + acrescimo, fixo: 12 };
 }
 
 function animarVisor(val) {
@@ -609,13 +593,21 @@ function animarVisor(val) {
 }
 
 function buscarCliente() {
-  const q = document.getElementById('busca').value.toLowerCase();
-  const found = clientes.find(c => (c.nome + (c.cpf||'')).toLowerCase().includes(q));
+  const q = document.getElementById('busca').value.toLowerCase().replace(/\D/g,'');
+  const found = clientes.find(c => (c.nome + (c.cpf||'')).toLowerCase().includes(document.getElementById('busca').value.toLowerCase()))
+    || unidades.find(u => (u.doc||'').replace(/\D/g,'').includes(q) && q.length > 5);
   const info = document.getElementById('clienteInfo');
-  if(found && q) {
+  if (found && document.getElementById('busca').value) {
     clienteAtual = found;
     info.style.display = 'block';
-    info.innerHTML = `<strong>${found.nome}</strong><br>${found.cpf || ''} · ${found.unidade || 'Sem unidade'}`;
+    const reg = found.uf ? ` · ${found.uf} · ${found.empresaAgua || ''}` : '';
+    info.innerHTML = `<strong>${found.nome}</strong><br>${found.doc || found.cpf || ''}${reg}`;
+    if (found.tarifaAgua) {
+      const cfg = JSON.parse(localStorage.getItem('seter_config')||'{}');
+      cfg.tarifaAgua = found.tarifaAgua;
+      cfg.tarifaEnergia = found.tarifaEnergia;
+      localStorage.setItem('seter_config', JSON.stringify(cfg));
+    }
   } else {
     info.style.display = 'none';
     clienteAtual = null;
@@ -667,17 +659,46 @@ function renderU() {
   `).join('') || '<tr><td colspan="3" style="text-align:center;color:var(--muted)">Nenhuma unidade</td></tr>';
 }
 
+async function buscarCnpj() {
+  const doc = document.getElementById('cfgDoc').value.replace(/\D/g,'');
+  if (doc.length !== 14) return;
+  const info = document.getElementById('cfgEmpresaInfo');
+  info.textContent = 'Buscando CNPJ...';
+  try {
+    const r = await fetch('https://brasilapi.com.br/api/cnpj/v1/' + doc);
+    if (!r.ok) throw new Error('CNPJ não encontrado');
+    const d = await r.json();
+    info.innerHTML = `<strong>${d.razao_social || d.nome_fantasia}</strong><br>${d.municipio} - ${d.uf} · CEP ${d.cep}`;
+    if (d.cep) {
+      document.getElementById('cfgCep').value = d.cep;
+      buscarRegiaoPorCep();
+    }
+    toast('Empresa encontrada: ' + (d.razao_social || '').slice(0,30));
+  } catch(e) {
+    info.textContent = 'CNPJ não localizado na Receita';
+  }
+}
 function addUnidade() {
   const nome = document.getElementById('uNome').value.trim();
   const tipo = document.getElementById('uTipo').value;
   const doc = document.getElementById('uDoc').value.trim();
-  if(!nome) { toast('Informe o nome da unidade'); return; }
-  unidades.push({ nome, tipo, doc });
+  const cepEl = document.getElementById('uCep');
+  if (!nome) { toast('Informe o nome da unidade'); return; }
+  unidades.push({
+    nome, tipo, doc,
+    cep: cepEl.value,
+    uf: cepEl.dataset.uf || '',
+    empresaAgua: cepEl.dataset.agua || '',
+    empresaEnergia: cepEl.dataset.energia || '',
+    tarifaAgua: parseFloat(cepEl.dataset.tarifaAgua) || 8.5,
+    tarifaEnergia: parseFloat(cepEl.dataset.tarifaEnergia) || 0.89
+  });
   localStorage.setItem('seter_uni', JSON.stringify(unidades));
   renderU();
   document.getElementById('uNome').value = '';
   document.getElementById('uDoc').value = '';
-  toast('Unidade cadastrada com sucesso!');
+  document.getElementById('uCep').value = '';
+  toast('Unidade cadastrada com região');
 }
 
 /* 2. TELA HISTÓRICO COM LIXEIRA PRETA SUAVE NO CÓDIGO */
@@ -770,24 +791,62 @@ function enviarWhats() {
 }
 
 const DIST_ENERGIA = [
-  {id:'equatorial-go',nome:'Equatorial GO',uf:'GO',tarifa:0.892},
-  {id:'equatorial-ma',nome:'Equatorial MA',uf:'MA',tarifa:0.843},
-  {id:'equatorial-al',nome:'Equatorial AL',uf:'AL',tarifa:0.851},
-  {id:'equatorial-pa',nome:'Equatorial PA',uf:'PA',tarifa:0.978},
-  {id:'equatorial-pi',nome:'Equatorial PI',uf:'PI',tarifa:0.947},
-  {id:'cemig',nome:'CEMIG',uf:'MG',tarifa:0.903},
-  {id:'copel',nome:'COPEL',uf:'PR',tarifa:0.768},
-  {id:'celesc',nome:'CELESC',uf:'SC',tarifa:0.696},
-  {id:'cpfl-paulista',nome:'CPFL Paulista',uf:'SP',tarifa:0.739},
-  {id:'enel-sp',nome:'Enel SP',uf:'SP',tarifa:0.789},
-  {id:'enel-rj',nome:'Enel RJ',uf:'RJ',tarifa:1.061},
-  {id:'light',nome:'Light',uf:'RJ',tarifa:0.881},
-  {id:'celpe',nome:'CELPE',uf:'PE',tarifa:0.799},
-  {id:'coelba',nome:'COELBA',uf:'BA',tarifa:0.878},
-  {id:'energisa-mt',nome:'Energisa MT',uf:'MT',tarifa:0.899},
-  {id:'energisa-ms',nome:'Energisa MS',uf:'MS',tarifa:0.987},
-  {id:'neoenergia-brasilia',nome:'Neoenergia Brasília',uf:'DF',tarifa:0.827},
-  {id:'amazonas-energia',nome:'Amazonas Energia',uf:'AM',tarifa:0.876}
+  {id:'equatorial-go',nome:'Equatorial GO',uf:'GO',tarifa:0.892,cidade:'Goiânia'},
+  {id:'equatorial-ma',nome:'Equatorial MA',uf:'MA',tarifa:0.843,cidade:'São Luís'},
+  {id:'equatorial-al',nome:'Equatorial AL',uf:'AL',tarifa:0.851,cidade:'Maceió'},
+  {id:'equatorial-pa',nome:'Equatorial PA',uf:'PA',tarifa:0.978,cidade:'Belém'},
+  {id:'equatorial-pi',nome:'Equatorial PI',uf:'PI',tarifa:0.947,cidade:'Teresina'},
+  {id:'equatorial-ap',nome:'Equatorial AP',uf:'AP',tarifa:0.825,cidade:'Macapá'},
+  {id:'ceee-equatorial',nome:'CEEE-Equatorial',uf:'RS',tarifa:0.822,cidade:'Porto Alegre'},
+  {id:'cemig',nome:'CEMIG',uf:'MG',tarifa:0.903,cidade:'Belo Horizonte'},
+  {id:'copel',nome:'COPEL',uf:'PR',tarifa:0.768,cidade:'Curitiba'},
+  {id:'celesc',nome:'CELESC',uf:'SC',tarifa:0.696,cidade:'Florianópolis'},
+  {id:'cpfl-paulista',nome:'CPFL Paulista',uf:'SP',tarifa:0.739,cidade:'Campinas'},
+  {id:'cpfl-piratininga',nome:'CPFL Piratininga',uf:'SP',tarifa:0.740,cidade:'Santos'},
+  {id:'enel-sp',nome:'Enel SP',uf:'SP',tarifa:0.789,cidade:'São Paulo'},
+  {id:'enel-rj',nome:'Enel RJ',uf:'RJ',tarifa:1.061,cidade:'Niterói'},
+  {id:'enel-ce',nome:'Enel CE',uf:'CE',tarifa:0.750,cidade:'Fortaleza'},
+  {id:'light',nome:'Light',uf:'RJ',tarifa:0.881,cidade:'Rio de Janeiro'},
+  {id:'elektro',nome:'Elektro',uf:'SP',tarifa:0.796,cidade:'Campinas'},
+  {id:'edp-sp',nome:'EDP SP',uf:'SP',tarifa:0.787,cidade:'São José dos Campos'},
+  {id:'edp-es',nome:'EDP ES',uf:'ES',tarifa:0.789,cidade:'Vitória'},
+  {id:'celpe',nome:'CELPE',uf:'PE',tarifa:0.799,cidade:'Recife'},
+  {id:'coelba',nome:'COELBA',uf:'BA',tarifa:0.878,cidade:'Salvador'},
+  {id:'cosern',nome:'COSERN',uf:'RN',tarifa:0.776,cidade:'Natal'},
+  {id:'energisa-pb',nome:'Energisa PB',uf:'PB',tarifa:0.676,cidade:'João Pessoa'},
+  {id:'energisa-se',nome:'Energisa SE',uf:'SE',tarifa:0.755,cidade:'Aracaju'},
+  {id:'energisa-mt',nome:'Energisa MT',uf:'MT',tarifa:0.899,cidade:'Cuiabá'},
+  {id:'energisa-ms',nome:'Energisa MS',uf:'MS',tarifa:0.987,cidade:'Campo Grande'},
+  {id:'energisa-to',nome:'Energisa TO',uf:'TO',tarifa:1.006,cidade:'Palmas'},
+  {id:'energisa-ro',nome:'Energisa RO',uf:'RO',tarifa:0.841,cidade:'Porto Velho'},
+  {id:'energisa-ac',nome:'Energisa AC',uf:'AC',tarifa:0.874,cidade:'Rio Branco'},
+  {id:'neoenergia-brasilia',nome:'Neoenergia Brasília',uf:'DF',tarifa:0.827,cidade:'Brasília'},
+  {id:'amazonas-energia',nome:'Amazonas Energia',uf:'AM',tarifa:0.876,cidade:'Manaus'},
+  {id:'chesp',nome:'CHESP',uf:'GO',tarifa:0.820,cidade:'Goiânia'},
+  {id:'rge-sul',nome:'RGE Sul',uf:'RS',tarifa:0.945,cidade:'Caxias do Sul'},
+  {id:'cocel',nome:'COCEL',uf:'PR',tarifa:0.734,cidade:'Londrina'}
+];
+const DIST_AGUA = [
+  {id:'saneago',nome:'Saneago',uf:'GO',tarifa:8.42,cidade:'Goiânia'},
+  {id:'sanepar',nome:'Sanepar',uf:'PR',tarifa:7.85,cidade:'Curitiba'},
+  {id:'sabesp',nome:'Sabesp',uf:'SP',tarifa:9.10,cidade:'São Paulo'},
+  {id:'caesb',nome:'Caesb',uf:'DF',tarifa:8.20,cidade:'Brasília'},
+  {id:'embasa',nome:'Embasa',uf:'BA',tarifa:6.95,cidade:'Salvador'},
+  {id:'cagece',nome:'Cagece',uf:'CE',tarifa:7.30,cidade:'Fortaleza'},
+  {id:'compesa',nome:'Compesa',uf:'PE',tarifa:6.80,cidade:'Recife'},
+  {id:'caern',nome:'Caern',uf:'RN',tarifa:6.50,cidade:'Natal'},
+  {id:'cagepa',nome:'Cagepa',uf:'PB',tarifa:6.40,cidade:'João Pessoa'},
+  {id:'casal',nome:'Casal',uf:'AL',tarifa:6.60,cidade:'Maceió'},
+  {id:'deso',nome:'Deso',uf:'SE',tarifa:6.70,cidade:'Aracaju'},
+  {id:'saneatins',nome:'Saneatins',uf:'TO',tarifa:7.10,cidade:'Palmas'},
+  {id:'caema',nome:'Caema',uf:'MA',tarifa:6.20,cidade:'São Luís'},
+  {id:'agespisa',nome:'Agespisa',uf:'PI',tarifa:6.30,cidade:'Teresina'},
+  {id:'cosanpa',nome:'Cosanpa',uf:'PA',tarifa:6.90,cidade:'Belém'},
+  {id:'corsan',nome:'Corsan',uf:'RS',tarifa:7.40,cidade:'Porto Alegre'},
+  {id:'casan',nome:'Casan',uf:'SC',tarifa:7.20,cidade:'Florianópolis'},
+  {id:'copasa',nome:'Copasa',uf:'MG',tarifa:7.60,cidade:'Belo Horizonte'},
+  {id:'cedae',nome:'Cedae',uf:'RJ',tarifa:8.50,cidade:'Rio de Janeiro'},
+  {id:'cesan',nome:'Cesan',uf:'ES',tarifa:7.80,cidade:'Vitória'}
 ];
 function toggleSidebar() {
   const sb = document.getElementById('sidebar');
@@ -820,16 +879,58 @@ function fazerLogin() {
   toast('Bem-vindo, ' + u);
   renderC(); renderU(); renderH(); dash(); renderA();
 }
+function buscarRegiaoPorCep() {
+  const cep = document.getElementById('cfgCep').value.replace(/\D/g,'');
+  if (cep.length < 8) { toast('CEP inválido'); return; }
+  const ufMap = {
+    '01':'SP','02':'SP','03':'SP','04':'SP','05':'SP','06':'SP','07':'SP','08':'SP','09':'SP','10':'SP','11':'SP','12':'SP','13':'SP','14':'SP','15':'SP','16':'SP','17':'SP','18':'SP','19':'SP',
+    '20':'RJ','21':'RJ','22':'RJ','23':'RJ','24':'RJ','25':'RJ','26':'RJ','27':'RJ','28':'RJ',
+    '30':'MG','31':'MG','32':'MG','33':'MG','34':'MG','35':'MG','36':'MG','37':'MG','38':'MG','39':'MG',
+    '40':'BA','41':'BA','42':'BA','43':'BA','44':'BA','45':'BA','46':'BA','47':'BA','48':'BA',
+    '50':'PE','51':'PE','52':'PE','53':'PE','54':'PE','55':'PE','56':'PE',
+    '60':'CE','61':'CE','62':'CE','63':'CE',
+    '65':'MA','66':'PA','67':'MT','68':'PA','69':'AM',
+    '70':'DF','71':'DF','72':'DF','73':'DF','74':'GO','75':'GO','76':'GO',
+    '77':'TO','78':'MT','79':'MS','80':'PR','81':'PR','82':'PR','83':'PR','84':'PR','85':'PR','86':'PR','87':'PR',
+    '88':'SC','89':'SC','90':'RS','91':'RS','92':'RS','93':'RS','94':'RS','95':'RS','96':'RS','97':'RS','98':'RS','99':'RS'
+  };
+  const uf = ufMap[cep.slice(0,2)] || 'GO';
+  const agua = DIST_AGUA.find(d => d.uf === uf) || DIST_AGUA[0];
+  const energia = DIST_ENERGIA.find(d => d.uf === uf) || DIST_ENERGIA[0];
+  const selA = document.getElementById('cfgEmpresaAgua');
+  const selE = document.getElementById('cfgEmpresaEnergia');
+  if (selA) { selA.innerHTML = ''; const o = document.createElement('option'); o.value = agua.id; o.textContent = agua.nome + ' (' + uf + ' - ' + (agua.cidade||'') + ')'; selA.appendChild(o); }
+  if (selE) { selE.innerHTML = ''; const o = document.createElement('option'); o.value = energia.id; o.textContent = energia.nome + ' (' + uf + ' - ' + (energia.cidade||'') + ') — R$ ' + energia.tarifa.toFixed(3); selE.appendChild(o); }
+  const ta = document.getElementById('cfgTarifaAgua');
+  const te = document.getElementById('cfgTarifaEnergia');
+  if (ta && agua.tarifa) ta.value = agua.tarifa.toFixed(2);
+  if (te && energia.tarifa) te.value = energia.tarifa.toFixed(3);
+  const cosip = document.getElementById('cfgCosip');
+  if (cosip && COSIP_CIDADE[uf]) cosip.value = COSIP_CIDADE[uf].toFixed(2);
+  toast('Região ' + uf + ' — tarifas e COSIP atualizados');
+  popularSelectAgua();
+  popularSelectEnergia();
+}
+function popularSelectAgua() {
+  const sel = document.getElementById('distSelect');
+  if (!sel) return;
+  const cfg = JSON.parse(localStorage.getItem('seter_config')||'{}');
+  sel.innerHTML = '';
+  const o = document.createElement('option');
+  o.value = cfg.empresaAgua || 'saneago';
+  o.textContent = (DIST_AGUA.find(d => d.id === o.value) || {nome:'Saneago'}).nome;
+  sel.appendChild(o);
+}
 function popularSelectEnergia() {
   const sel = document.getElementById('distSelect');
   if (!sel) return;
+  const cfg = JSON.parse(localStorage.getItem('seter_config')||'{}');
   sel.innerHTML = '';
-  DIST_ENERGIA.forEach(d => {
-    const o = document.createElement('option');
-    o.value = d.id;
-    o.textContent = `${d.nome} (${d.uf}) — R$ ${d.tarifa.toFixed(3)}/kWh`;
-    sel.appendChild(o);
-  });
+  const o = document.createElement('option');
+  o.value = cfg.empresaEnergia || 'equatorial-go';
+  const d = DIST_ENERGIA.find(x => x.id === o.value) || {nome:'Equatorial GO', tarifa:0.892};
+  o.textContent = `${d.nome} — R$ ${d.tarifa.toFixed(3)}/kWh`;
+  sel.appendChild(o);
 }
 window.addEventListener('load', () => {
   if (window.innerWidth < 800) {
@@ -887,17 +988,21 @@ function initNeural() {
 }
 function salvarConfig() {
   const cfg = {
-    empresa: document.getElementById('cfgEmpresa').value,
-    cnpj: document.getElementById('cfgCnpj').value,
-    resp: document.getElementById('cfgResp').value,
-    venc: document.getElementById('cfgVenc').value,
-    tarifaAgua: document.getElementById('cfgTarifaAgua').value,
-    tarifaEsgoto: document.getElementById('cfgTarifaEsgoto').value,
-    tarifaEnergia: document.getElementById('cfgTarifaEnergia').value,
-    cosip: document.getElementById('cfgCosip').value
+    empresa: document.getElementById('cfgEmpresa')?.value || 'Seter Pro',
+    cnpj: document.getElementById('cfgCnpj')?.value || '',
+    resp: document.getElementById('cfgResp')?.value || '',
+    venc: document.getElementById('cfgVenc')?.value || 10,
+    tarifaAgua: document.getElementById('cfgTarifaAgua')?.value || 8.5,
+    tarifaEsgoto: document.getElementById('cfgTarifaEsgoto')?.value || 4.6,
+    tarifaEnergia: document.getElementById('cfgTarifaEnergia')?.value || 0.89,
+    cosip: document.getElementById('cfgCosip')?.value || 16,
+    cep: document.getElementById('cfgCep')?.value || '',
+    empresaAgua: document.getElementById('cfgEmpresaAgua')?.value || 'saneago',
+    empresaEnergia: document.getElementById('cfgEmpresaEnergia')?.value || 'equatorial-go'
   };
   localStorage.setItem('seter_config', JSON.stringify(cfg));
-  toast('Configurações salvas em todas as máquinas');
+  toast('Configurações salvas');
+  popularSelectAgua();
 }
 function salvarTarifas() { salvarConfig(); }
 
@@ -908,6 +1013,15 @@ function abrirConfigInter() {
     localStorage.setItem('inter_client_id', clientId);
     localStorage.setItem('inter_client_secret', clientSecret);
     toast('Banco Inter configurado');
+  }
+}
+function abrirConfigWhats() {
+  const phone = prompt('Phone ID do WhatsApp Business:');
+  const token = prompt('Token permanente:');
+  if (phone && token) {
+    localStorage.setItem('wa_phone', phone);
+    localStorage.setItem('wa_token', token);
+    toast('WhatsApp configurado');
   }
 }
 function abrirModal(id) { document.getElementById(id).classList.add('open'); }
