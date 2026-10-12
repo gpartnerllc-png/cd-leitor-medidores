@@ -186,7 +186,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
       <div class="badge" id="roleBadge">—</div>
     </div>
 
-    <!-- SEÇÃO DE LEITURA & AUTOMATIZAÇÃO DE MEDIDOR -->
+    <!-- SEÇÃO DE LEITURA -->
     <section class="section active" id="sec-leitura">
       <div class="grid2">
         <div class="card">
@@ -323,18 +323,18 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
       </div>
     </section>
 
-    <!-- CONFIGURAÇÕES & CADASTRO ÚNICO COMPLETO -->
+    <!-- CONFIGURAÇÕES & CADASTRO ÚNICO COM CEP REST AO VIVO -->
     <section class="section" id="sec-config">
       <div class="card" style="max-width:1050px">
-        <div class="card-title">Cadastro Unificado · Unidades, Medidores e APIs de Concessionárias</div>
+        <div class="card-title">Cadastro Unificado · Unidades, Medidores e CEP ao Vivo</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
           <div>
+            <div class="field"><label>CEP (Automação REST da Concessionária ao Vivo)</label><input id="cfgCep" placeholder="71989-600" onkeyup="if(this.value.replace(/\D/g,'').length>=8) buscarRegiaoPorCep()"/></div>
             <div class="field"><label>Nome da Unidade / Cliente</label><input id="cfgNome" placeholder="Ex: Condomínio Bella Vista ou Residência"/></div>
             <div class="field"><label>Tipo de Medição</label><select id="cfgTipoMedicao"><option value="AGUA">💧 Água</option><option value="ENERGIA">⚡ Energia</option></select></div>
             <div class="field"><label>Número do Medidor / Relógio</label><input id="cfgNumMedidor" placeholder="Ex: MED-982345"/></div>
             <div class="field"><label>Padrão do Medidor</label><select id="cfgPadraoMedidor"><option value="analogico">Analógico (Roleta)</option><option value="digital">Digital (LCD/LED)</option><option value="smart">Smart Meter IoT</option></select></div>
             <div class="field"><label>CNPJ / CPF</label><input id="cfgDoc" placeholder="00.000.000/0001-00" onblur="buscarCnpj()"/></div>
-            <div class="field"><label>CEP (Automação de Região e Concessionária)</label><input id="cfgCep" placeholder="00000-000" oninput="if(this.value.replace(/\D/g,'').length>=8)buscarRegiaoPorCep()"/></div>
             <div id="cfgEmpresaInfo" style="font-size:12px;color:var(--muted);margin-bottom:12px;min-height:20px"></div>
             <button class="btn btn-prim" onclick="salvarCadastroUnico()">Salvar Medidor no Sistema</button>
           </div>
@@ -345,7 +345,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
             <div class="field"><label>Tarifa Energia (R$/kWh)</label><input type="number" id="cfgTarifaEnergia" value="0.89" step="0.01"/></div>
             <div class="field"><label>COSIP (R$/mês)</label><input type="number" id="cfgCosip" value="16.56" step="0.1"/></div>
             <div class="field"><label>Chave API / Token Concessionária</label><input id="cfgApiToken" placeholder="Bearer Token / XML Key"/></div>
-            <div class="field"><label>Responsável Técnico</label><input id="cfgResp" placeholder="Nome do leiturista"/></div>
+            <div class="field"><label>Responsável Técnico</label><input id="cfgResp" placeholder="CRISTIAN FLORENCIO"/></div>
           </div>
         </div>
 
@@ -390,25 +390,26 @@ let medidorAtual = null;
 let fotoSelecionada = null;
 let faturaAtual = null;
 
-let unidades = JSON.parse(localStorage.getItem('seter_uni')||'[{"nome":"Condomínio Bella Vista","tipo":"AGUA","numMedidor":"AGU-44012","padrao":"analogico","doc":"00.000.000/0001-00","empresaAgua":"saneago","empresaEnergia":"equatorial-go","tarifaAgua":8.5,"tarifaEnergia":0.89},{"nome":"Residência Central","tipo":"ENERGIA","numMedidor":"ENR-99201","padrao":"digital","doc":"342.599.988-54","empresaAgua":"saneago","empresaEnergia":"equatorial-go","tarifaAgua":8.5,"tarifaEnergia":0.89}]');
+let unidades = JSON.parse(localStorage.getItem('seter_uni')||'[{"nome":"Residência Central","tipo":"AGUA","numMedidor":"AGU-44012","padrao":"analogico","doc":"342.599.988-54","empresaAgua":"caesb","empresaEnergia":"neoenergia-brasilia","tarifaAgua":8.2,"tarifaEnergia":0.827},{"nome":"Condomínio Bella Vista","tipo":"ENERGIA","numMedidor":"ENR-99201","padrao":"digital","doc":"00.000.000/0001-00","empresaAgua":"saneago","empresaEnergia":"equatorial-go","tarifaAgua":8.5,"tarifaEnergia":0.89}]');
 let historico = JSON.parse(localStorage.getItem('seter_hist')||'[{"data":"2026-10-11T16:27:37.000Z","medidor":"ENR-99201","tipo":"ENERGIA","leitura":14520,"consumo":145,"total":144.18}]');
 let aprovacoes = JSON.parse(localStorage.getItem('seter_apr')||'[{"cliente":"Condomínio Bella Vista","de":"João Silva","para":"Maria Souza"}]');
 
 const DIST_ENERGIA = [
-  {id:'equatorial-go',nome:'Equatorial GO',uf:'GO',tarifa:0.892},
-  {id:'enel-sp',nome:'Enel SP',uf:'SP',tarifa:0.789},
-  {id:'cemig',nome:'CEMIG',uf:'MG',tarifa:0.903},
-  {id:'copel',nome:'COPEL',uf:'PR',tarifa:0.768},
-  {id:'light',nome:'Light RJ',uf:'RJ',tarifa:0.881}
+  {id:'neoenergia-brasilia',nome:'Neoenergia Brasília (DF)',uf:'DF',tarifa:0.827},
+  {id:'equatorial-go',nome:'Equatorial GO (GO)',uf:'GO',tarifa:0.892},
+  {id:'enel-sp',nome:'Enel SP (SP)',uf:'SP',tarifa:0.789},
+  {id:'cemig',nome:'CEMIG (MG)',uf:'MG',tarifa:0.903},
+  {id:'copel',nome:'COPEL (PR)',uf:'PR',tarifa:0.768},
+  {id:'light',nome:'Light (RJ)',uf:'RJ',tarifa:0.881}
 ];
 const DIST_AGUA = [
-  {id:'saneago',nome:'Saneago',uf:'GO',tarifa:8.42},
-  {id:'sanepar',nome:'Sanepar',uf:'PR',tarifa:7.85},
-  {id:'sabesp',nome:'Sabesp',uf:'SP',tarifa:9.10},
-  {id:'caesb',nome:'Caesb',uf:'DF',tarifa:8.20},
-  {id:'cedae',nome:'Cedae',uf:'RJ',tarifa:8.50}
+  {id:'caesb',nome:'Caesb (DF)',uf:'DF',tarifa:8.20},
+  {id:'saneago',nome:'Saneago (GO)',uf:'GO',tarifa:8.42},
+  {id:'sanepar',nome:'Sanepar (PR)',uf:'PR',tarifa:7.85},
+  {id:'sabesp',nome:'Sabesp (SP)',uf:'SP',tarifa:9.10},
+  {id:'cedae',nome:'Cedae (RJ)',uf:'RJ',tarifa:8.50}
 ];
-const COSIP_CIDADE = { 'GO':16.56, 'SP':18.20, 'RJ':19.50, 'PR':14.80, 'DF':15.00 };
+const COSIP_CIDADE = { 'DF':15.00, 'GO':16.56, 'SP':18.20, 'RJ':19.50, 'PR':14.80 };
 
 function fazerLogin() {
   const u = document.getElementById('loginUser').value.trim();
@@ -468,7 +469,6 @@ function selecionarTipo(tipo, el) {
   document.getElementById('bandeiraWrap').style.display = (tipo === 'ENERGIA') ? 'block' : 'none';
 }
 
-/* AUTOMAÇÃO: IDENTIFICAÇÃO AUTOMÁTICA PELO NÚMERO DO MEDIDOR */
 function autoIdentificarMedidor() {
   const query = document.getElementById('busca').value.toLowerCase().trim();
   const found = unidades.find(u => u.numMedidor.toLowerCase().includes(query) || u.nome.toLowerCase().includes(query));
@@ -479,11 +479,9 @@ function autoIdentificarMedidor() {
     info.style.display = 'block';
     info.innerHTML = `<strong>${found.nome}</strong> · Nº Medidor: <span style="font-family:'JetBrains Mono'">${found.numMedidor}</span><br>Tipo: <strong>${found.tipo}</strong> · Concessionária: ${found.tipo === 'AGUA' ? found.empresaAgua : found.empresaEnergia}<br><span style="font-size:11px">Tarifa: R$ ${found.tipo === 'AGUA' ? found.tarifaAgua : found.tarifaEnergia}</span>`;
     
-    // Ajusta o tipo (Água ou Energia) automaticamente
     if(found.tipo === 'AGUA') selecionarTipo('AGUA', document.getElementById('btnTipoAgua'));
     else selecionarTipo('ENERGIA', document.getElementById('btnTipoEnergia'));
     
-    // Busca a última leitura deste medidor no histórico
     const hist = historico.filter(h => h.medidor === found.numMedidor);
     if(hist.length > 0) document.getElementById('anterior').value = hist[0].leitura;
   } else {
@@ -492,24 +490,40 @@ function autoIdentificarMedidor() {
   }
 }
 
-/* AUTOMAÇÃO: CEP AUTO-PREENCHE CONCESSIONÁRIA E TARIFAS */
-function buscarRegiaoPorCep() {
+/* BUSCA REAL DE CEP EM TEMPO REAL VIA VIA-CEP / BRASIL-API */
+async function buscarRegiaoPorCep() {
   const cep = document.getElementById('cfgCep').value.replace(/\D/g,'');
   if (cep.length < 8) return;
   
-  const ufMap = { '01':'SP','02':'SP','20':'RJ','30':'MG','74':'GO','75':'GO','80':'PR','70':'DF' };
-  const uf = ufMap[cep.slice(0,2)] || 'GO';
+  const info = document.getElementById('cfgEmpresaInfo');
+  info.textContent = 'Buscando CEP e Concessionária em tempo real...';
   
-  const agua = DIST_AGUA.find(d => d.uf === uf) || DIST_AGUA[0];
-  const energia = DIST_ENERGIA.find(d => d.uf === uf) || DIST_ENERGIA[0];
-  
-  document.getElementById('cfgEmpresaAgua').value = agua.id;
-  document.getElementById('cfgEmpresaEnergia').value = energia.id;
-  document.getElementById('cfgTarifaAgua').value = agua.tarifa.toFixed(2);
-  document.getElementById('cfgTarifaEnergia').value = energia.tarifa.toFixed(2);
-  document.getElementById('cfgCosip').value = (COSIP_CIDADE[uf] || 16.56).toFixed(2);
-  
-  toast(`Região ${uf} identificada: concessionárias e tarifas configuradas!`);
+  try {
+    const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+    if (!response.ok) throw new Error('CEP não encontrado');
+    const d = await response.json();
+    
+    if(d.erro) {
+      info.textContent = 'CEP não localizado na base postal.';
+      return;
+    }
+    
+    const uf = d.uf || 'DF';
+    info.innerHTML = `<strong>${d.logradouro || 'Região Localizada'}</strong> — ${d.bairro || ''}, ${d.localidade}/${uf}`;
+    
+    const agua = DIST_AGUA.find(a => a.uf === uf) || DIST_AGUA[0];
+    const energia = DIST_ENERGIA.find(e => e.uf === uf) || DIST_ENERGIA[0];
+    
+    document.getElementById('cfgEmpresaAgua').value = agua.id;
+    document.getElementById('cfgEmpresaEnergia').value = energia.id;
+    document.getElementById('cfgTarifaAgua').value = agua.tarifa.toFixed(2);
+    document.getElementById('cfgTarifaEnergia').value = energia.tarifa.toFixed(3);
+    document.getElementById('cfgCosip').value = (COSIP_CIDADE[uf] || 16.56).toFixed(2);
+    
+    toast(`CEP ${cep} (${uf}) localizado: Concessionária e Tarifas configuradas!`);
+  } catch(e) {
+    info.textContent = 'Erro ao buscar CEP ao vivo. Verifique a conexão.';
+  }
 }
 
 function selBandeira(b, el) {
@@ -700,7 +714,7 @@ async function buscarCnpj() {
   const doc = document.getElementById('cfgDoc').value.replace(/\D/g,'');
   if (doc.length !== 14) return;
   const info = document.getElementById('cfgEmpresaInfo');
-  info.textContent = 'Buscando CNPJ...';
+  info.textContent = 'Buscando CNPJ na Receita Federal...';
   try {
     const r = await fetch('https://brasilapi.com.br/api/cnpj/v1/' + doc);
     if (!r.ok) throw new Error();
@@ -788,8 +802,8 @@ function dash(p='mes') {
 function popularSelects() {
   const selA = document.getElementById('cfgEmpresaAgua');
   const selE = document.getElementById('cfgEmpresaEnergia');
-  if(selA) selA.innerHTML = DIST_AGUA.map(d => `<option value="${d.id}">${d.nome} (${d.uf})</option>`).join('');
-  if(selE) selE.innerHTML = DIST_ENERGIA.map(d => `<option value="${d.id}">${d.nome} (${d.uf})</option>`).join('');
+  if(selA) selA.innerHTML = DIST_AGUA.map(d => `<option value="${d.id}">${d.nome}</option>`).join('');
+  if(selE) selE.innerHTML = DIST_ENERGIA.map(d => `<option value="${d.id}">${d.nome}</option>`).join('');
 }
 
 function gerarPix() {
