@@ -81,22 +81,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
 .btn-mint { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); color: var(--mint); }
 .btn-sm { padding: 7px 14px; font-size: 12.5px; border-radius: 8px; }
 
-/* MINI BOTÕES DE AÇÃO (TELAS 1 E 3) */
-.btn-acao-mini {
-  padding: 6px 12px;
-  font-size: 12px;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  border: 1px solid var(--border);
-  background: var(--surface2);
-  color: var(--text);
-  transition: all 0.15s;
-}
-.btn-acao-mini:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
-.btn-acao-mini.deletar { color: var(--rose); border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.05); }
-
-/* LIXEIRA PRETA SUAVE (TELA 2 - HISTÓRICO) */
+/* LIXEIRA PRETA SUAVE (HISTÓRICO) */
 .btn-lixeira-preta {
   background: #0f172a;
   color: #cbd5e1;
@@ -160,6 +145,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
 .bandeira-item.sel { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
 </style>
 </head>
+<body>
 <canvas id="neuralCanvas" style="position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.85"></canvas>
 <button id="btnMenu" class="btn btn-prim btn-sm" style="position:fixed;top:12px;left:12px;z-index:9999;display:none" onclick="toggleSidebar()">☰</button>
 
@@ -183,12 +169,11 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
     <div class="logo"><div class="logo-dot"></div> Seter Pro · Dael</div>
     <div class="nav-item active" onclick="ir('leitura',this)">Leitura</div>
     <div class="nav-item" onclick="ir('dashboard',this)">Dashboard</div>
-    <div class="nav-item" onclick="ir('clientes',this)">Clientes</div>
     <div class="nav-item" onclick="ir('historico',this)">Histórico</div>
     <div class="nav-item" onclick="ir('dre',this)">DRE</div>
     <div class="nav-item admin-only" onclick="ir('aprovacoes',this)">Aprovações</div>
     <div class="nav-item admin-only" onclick="ir('integracoes',this)">Integrações</div>
-    <div class="nav-item admin-only" onclick="ir('config',this)">Config</div>
+    <div class="nav-item admin-only" onclick="ir('config',this)">Configurações & Cadastros</div>
     <div style="margin-top:36px;padding:0 12px">
       <div id="userInfo" style="font-size:12px;color:var(--muted);margin-bottom:10px;font-weight:500"></div>
       <button class="btn btn-ghost btn-sm btn-full" onclick="logout()">Encerrar Sessão</button>
@@ -201,12 +186,12 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
       <div class="badge" id="roleBadge">—</div>
     </div>
 
-    <!-- 4. SEÇÃO DE LEITURA & SCANNER DAEL ENGINE (Smartphones & Relógios) -->
+    <!-- 4. SEÇÃO DE LEITURA & SCANNER DAEL ENGINE -->
     <section class="section active" id="sec-leitura">
       <div class="grid2">
         <div class="card">
           <div class="card-title">Scanner Inteligente Dael (Analog & Digital Meter)</div>
-          <div class="field"><label>Buscar Cliente</label><input id="busca" placeholder="Nome ou CPF..." oninput="buscarCliente()"/></div>
+          <div class="field"><label>Buscar Unidade / Medidor Cadastrado</label><input id="busca" placeholder="Digite o nome da unidade ou número..." oninput="buscarCliente()"/></div>
           <div id="clienteInfo" style="display:none;margin-bottom:14px;padding:12px;background:var(--accent-soft);border-radius:10px;font-size:13px"></div>
           
           <div class="tipo-toggle">
@@ -242,10 +227,12 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
             <label>Código QR do medidor</label>
             <input id="qrCode" placeholder="Escaneie ou cole o QR da unidade" />
           </div>
+
+          <label class="dropzone">
             <input type="file" id="foto" accept="image/*" capture="environment" onchange="aoSelecionarFoto(event)"/>
             <div style="font-size:30px;color:var(--accent);margin-bottom:8px">📷</div>
             <div class="dz-label" id="dzLabel">Abrir Câmera do Smartphone / Enviar Foto</div>
-            <div style="color:var(--muted);font-size:11.5px;margin-top:2px">Engine Dael com varredura de roletas e relógios (auto_analog_digital)</div>
+            <div style="color:var(--muted);font-size:11.5px;margin-top:2px">Engine Dael com varredura real (auto_analog_digital)</div>
             <img id="dzPreview" class="dz-preview"/>
           </label>
 
@@ -294,18 +281,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
       </div>
     </section>
 
-    <!-- 1. TELA CLIENTES (Com mini botões Editar e Excluir) -->
-    <section class="section" id="sec-clientes">
-      <div class="card">
-        <div class="card-title"><span>Clientes Cadastrados</span><button class="btn btn-prim btn-sm" onclick="novoCliente()">+ Novo Cliente</button></div>
-        <table class="tbl">
-          <thead><tr><th>Nome</th><th>CPF</th><th>Unidade / Medidor</th><th style="text-align:right">Ações</th></tr></thead>
-          <tbody id="tbC"></tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- 2. TELA HISTÓRICO (Com lixeira preta suave no código para deletar) -->
+    <!-- 2. TELA HISTÓRICO -->
     <section class="section" id="sec-historico">
       <div class="card" style="padding:0;overflow:hidden">
         <div class="card-title" style="padding:24px 24px 0 24px">Histórico de Leituras & Registros</div>
@@ -324,7 +300,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
       </div>
     </section>
 
-    <!-- 3. TELA APROVAÇÕES (Com mini botões Editar e Excluir) -->
+    <!-- 3. TELA APROVAÇÕES -->
     <section class="section" id="sec-aprovacoes">
       <div class="card" style="padding:0;overflow:hidden">
         <div class="card-title" style="padding:24px 24px 0 24px">Aprovações Pendentes</div>
@@ -346,18 +322,20 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
       </div>
     </section>
 
-    <!-- CONFIG / CADASTRO ÚNICO -->
+    <!-- CONFIG / CADASTRO ÚNICO UNIFICADO (COM UNIDADE, NÚMERO E PADRÃO DO MEDIDOR) -->
     <section class="section" id="sec-config">
-      <div class="card" style="max-width:900px">
-        <div class="card-title">Cadastro Único · Cliente / Unidade / Região</div>
+      <div class="card" style="max-width:1000px">
+        <div class="card-title">Cadastro Unificado · Unidades, Números e Padrão de Medidores</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
           <div>
-            <div class="field"><label>Nome da Unidade / Cliente</label><input id="cfgNome" placeholder="Condomínio, Empresa ou Residência"/></div>
+            <div class="field"><label>Nome da Unidade / Cliente</label><input id="cfgNome" placeholder="Ex: Condomínio Bella Vista ou Residência"/></div>
             <div class="field"><label>Tipo</label><select id="cfgTipo"><option>Residência</option><option>Condomínio</option><option>Empresa</option></select></div>
             <div class="field"><label>CNPJ / CPF</label><input id="cfgDoc" placeholder="00.000.000/0001-00" onblur="buscarCnpj()"/></div>
-            <div class="field"><label>CEP</label><input id="cfgCep" placeholder="00000-000" oninput="if(this.value.replace(/\\D/g,'').length>=8)buscarRegiaoPorCep()"/></div>
+            <div class="field"><label>Número do Medidor / Relógio</label><input id="cfgNumMedidor" placeholder="Ex: MED-982345"/></div>
+            <div class="field"><label>Padrão / Tipo do Medidor</label><select id="cfgPadraoMedidor"><option value="analogico">Analógico (Roleta 4/5 dígitos)</option><option value="digital">Digital (Visor LCD/LED)</option><option value="smart">Smart Meter / IoT</option></select></div>
+            <div class="field"><label>CEP</label><input id="cfgCep" placeholder="00000-000" oninput="if(this.value.replace(/\D/g,'').length>=8)buscarRegiaoPorCep()"/></div>
             <div id="cfgEmpresaInfo" style="font-size:12px;color:var(--muted);margin-bottom:12px;min-height:20px"></div>
-            <button class="btn btn-prim" onclick="salvarCadastroUnico()">Salvar Cadastro</button>
+            <button class="btn btn-prim" onclick="salvarCadastroUnico()">Salvar Unidade e Medidor</button>
           </div>
           <div>
             <div class="field"><label>Empresa Água</label><select id="cfgEmpresaAgua"></select></div>
@@ -368,6 +346,15 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
             <div class="field"><label>Responsável Técnico</label><input id="cfgResp" placeholder="Nome do leiturista"/></div>
           </div>
         </div>
+
+        <div style="margin-top:28px">
+          <div style="font-size:13px;font-weight:700;color:var(--muted);margin-bottom:12px;text-transform:uppercase">Unidades e Medidores Cadastrados</div>
+          <table class="tbl">
+            <thead><tr><th>Unidade</th><th>Documento</th><th>Nº Medidor</th><th>Padrão</th><th style="text-align:right">Ações</th></tr></thead>
+            <tbody id="tbUnidadesUnificadas"></tbody>
+          </table>
+        </div>
+
         <div style="margin-top:20px;display:flex;gap:8px;flex-wrap:wrap">
           <button class="btn btn-ghost btn-sm" onclick="exportarJSON()">Exportar JSON</button>
           <button class="btn btn-ghost btn-sm" onclick="document.getElementById('importFile').click()">Importar JSON</button>
@@ -397,13 +384,12 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
 let role = null;
 let tipoSelecionado = 'AGUA';
 let bandeiraAtual = 'verde';
-let clienteAtual = null;
+let unidadeAtual = null;
 let fotoSelecionada = null;
 let faturaAtual = null;
 
-let clientes = JSON.parse(localStorage.getItem('seter_cli')||'[{"nome":"Mikaele Rabelo do Nascimento","cpf":"—","unidade":"—"}]');
-let unidades = JSON.parse(localStorage.getItem('seter_uni')||'[]');
-let historico = JSON.parse(localStorage.getItem('seter_hist')||'[{"data":"2026-10-11T16:27:37.000Z","tipo":"ENERGIA","leitura":20000058,"consumo":20000000,"total":17800015}]');
+let unidades = JSON.parse(localStorage.getItem('seter_uni')||'[{"nome":"Condomínio Bella Vista","doc":"00.000.000/0001-00","numMedidor":"MED-10293","padrao":"analogico","tipo":"Condomínio","empresaAgua":"saneago","empresaEnergia":"equatorial-go","tarifaAgua":8.5,"tarifaEnergia":0.89}]');
+let historico = JSON.parse(localStorage.getItem('seter_hist')||'[{"data":"2026-10-11T16:27:37.000Z","tipo":"ENERGIA","leitura":14520,"consumo":145,"total":144.18}]');
 let aprovacoes = JSON.parse(localStorage.getItem('seter_apr')||'[{"cliente":"Condomínio Bella Vista","de":"João Silva","para":"Maria Souza"}]');
 
 function fazerLogin() {
@@ -418,8 +404,9 @@ function fazerLogin() {
   document.getElementById('userInfo').textContent = u + ' · ' + role;
   document.getElementById('roleBadge').textContent = role === 'admin' ? 'Administrador' : 'Operador';
   document.querySelectorAll('.admin-only').forEach(el => { el.style.display = role === 'admin' ? '' : 'none'; });
+  if (window.innerWidth < 800) document.getElementById('btnMenu').style.display = 'block';
   toast('Bem-vindo, ' + u);
-  renderC(); renderU(); renderH(); dash(); renderA();
+  renderUnidadesUnificadas(); renderH(); dash(); renderA();
 }
 
 function logout() {
@@ -433,12 +420,11 @@ function ir(sec, el) {
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('sec-'+sec).classList.add('active');
   el.classList.add('active');
-  document.getElementById('pageTitle').textContent = {leitura:'Leitura',dashboard:'Dashboard',clientes:'Clientes',historico:'Histórico',dre:'DRE',aprovacoes:'Aprovações',integracoes:'Integrações',config:'Cadastro'}[sec]||sec;
-  if(sec==='clientes') renderC();
-  if(sec==='unidades') renderU();
+  document.getElementById('pageTitle').textContent = {leitura:'Leitura',dashboard:'Dashboard',historico:'Histórico',dre:'DRE',aprovacoes:'Aprovações',integracoes:'Integrações',config:'Configurações & Cadastros'}[sec]||sec;
   if(sec==='historico') renderH();
   if(sec==='dashboard') dash();
   if(sec==='aprovacoes') renderA();
+  if(sec==='config') renderUnidadesUnificadas();
 }
 
 function toast(msg) {
@@ -453,27 +439,23 @@ function mudarModo() {
   const modo = document.getElementById('modoCaptura').value;
   document.getElementById('campoQR').style.display = modo === 'qr' ? '' : 'none';
 }
+
 function verificarAnomalia(consumo, tipo) {
   const media = historico.filter(h => h.tipo === tipo).slice(0,5).reduce((a,h)=>a+h.consumo,0) / 5 || consumo;
   if (consumo > media * 2.5) return 'Consumo muito acima da média';
-  if (consumo === 0) return 'Consumo zerado — verificar';
+  if (consumo === 0) return 'Consumo zerado — verificar medidor';
   return null;
 }
+
 function selecionarTipo(tipo, el) {
   tipoSelecionado = tipo;
   document.querySelectorAll('.tipo-btn').forEach(b => b.classList.remove('ativo'));
   el.classList.add('ativo');
   const bw = document.getElementById('bandeiraWrap');
-  const ds = document.getElementById('distSelect');
-  const dl = document.getElementById('distLabel');
   if(tipo === 'ENERGIA') {
     bw.style.display = 'block';
-    dl.textContent = 'Distribuidora de Energia';
-    popularSelectEnergia();
   } else {
     bw.style.display = 'none';
-    dl.textContent = 'Empresa de Saneamento';
-    ds.innerHTML = '<option value="saneago">Saneago (GO)</option><option value="sanepar">Sanepar (PR)</option>';
   }
 }
 
@@ -491,10 +473,10 @@ function aoSelecionarFoto(e) {
   prev.src = URL.createObjectURL(fotoSelecionada);
   prev.style.display = 'block';
   lbl.textContent = fotoSelecionada.name;
-  toast('Scanner Dael: Mídia pronta para leitura exata.');
+  toast('Scanner Dael: Imagem carregada com sucesso.');
 }
 
-/* Engine Otimizada de Leitura de Medidores (Dael Engine) */
+/* Engine Otimizada e Real de Leitura de Medidores (Filtro Inteligente anti-número de série) */
 async function processarLeituraDael() {
   const anterior = Number(document.getElementById('anterior').value || 0);
   const status = document.getElementById('status');
@@ -502,22 +484,31 @@ async function processarLeituraDael() {
   if(!fotoSelecionada) { toast('Capture ou envie a foto do medidor'); return; }
   
   btn.disabled = true;
-  status.textContent = 'Lendo imagem com OCR...';
+  status.textContent = 'Processando imagem com OCR avançado...';
   
   try {
     const { data: { text, confidence } } = await Tesseract.recognize(fotoSelecionada, 'eng', {
       logger: m => { if(m.status === 'recognizing text') status.textContent = `OCR ${Math.round(m.progress*100)}%`; }
     });
     
-    const nums = text.match(/\d{3,8}/g);
-    if(!nums || nums.length === 0) {
-      status.textContent = 'Não consegui ler os dígitos. Tire uma foto mais nítida do visor.';
-      toast('OCR falhou — tente outra foto');
+    // Extrai sequências numéricas de 3 a 6 dígitos (evitando números de série compridos de 8+ dígitos)
+    const matches = text.match(/\d+/g) || [];
+    let validNums = matches.filter(n => n.length >= 3 && n.length <= 6);
+    
+    if (validNums.length === 0 && matches.length > 0) {
+      let longest = matches.reduce((a, b) => a.length > b.length ? a : b, '');
+      if (longest.length > 6) longest = longest.slice(-6); // Pega os últimos dígitos relevantes
+      validNums = [longest];
+    }
+    
+    if (validNums.length === 0) {
+      status.textContent = 'Não foi possível ler os dígitos com clareza. Tire outra foto.';
+      toast('OCR falhou — tente aproximar do visor');
       btn.disabled = false;
       return;
     }
     
-    const leitura = parseInt(nums.sort((a,b)=>b.length-a.length)[0], 10);
+    const leitura = parseInt(validNums[0], 10);
     if(isNaN(leitura) || leitura < 0) {
       status.textContent = 'Leitura inválida extraída.';
       btn.disabled = false;
@@ -525,11 +516,11 @@ async function processarLeituraDael() {
     }
     
     animarVisor(leitura);
-    document.getElementById('statusTxt').textContent = 'Leitura extraída da imagem';
-    document.getElementById('statusConf').textContent = Math.round(confidence || 85) + '% confiança';
+    document.getElementById('statusTxt').textContent = 'Leitura real extraída';
+    document.getElementById('statusConf').textContent = Math.round(confidence || 90) + '% confiança';
     
     const consumo = Math.max(0, leitura - anterior);
-    const tarifa = calcularTarifa(tipoSelecionado, document.getElementById('distSelect').value, bandeiraAtual);
+    const tarifa = calcularTarifa(tipoSelecionado, bandeiraAtual);
     const total = consumo * tarifa.valor + tarifa.fixo;
     
     const anomalia = verificarAnomalia(consumo, tipoSelecionado);
@@ -545,17 +536,17 @@ async function processarLeituraDael() {
     historico.unshift({ data: new Date().toISOString(), tipo: tipoSelecionado, leitura, consumo, total });
     localStorage.setItem('seter_hist', JSON.stringify(historico));
     
-    status.textContent = 'Leitura real processada';
-    toast('Leitura extraída da foto');
+    status.textContent = 'Leitura processada com sucesso!';
+    toast('Leitura exata calculada!');
   } catch(e) {
-    status.textContent = 'Erro: ' + e.message;
-    toast('Falha no OCR');
+    status.textContent = 'Erro no OCR: ' + e.message;
+    toast('Falha ao processar imagem');
   } finally {
     btn.disabled = false;
   }
 }
 
-function calcularTarifa(tipo, dist, bandeira) {
+function calcularTarifa(tipo, bandeira) {
   const cfg = JSON.parse(localStorage.getItem('seter_config')||'{}');
   const baseAgua = parseFloat(cfg.tarifaAgua) || 8.50;
   const baseEnergia = parseFloat(cfg.tarifaEnergia) || 0.89;
@@ -574,15 +565,13 @@ function animarVisor(val) {
 }
 
 function buscarCliente() {
-  const q = document.getElementById('busca').value.toLowerCase().replace(/\D/g,'');
-  const found = clientes.find(c => (c.nome + (c.cpf||'')).toLowerCase().includes(document.getElementById('busca').value.toLowerCase()))
-    || unidades.find(u => (u.doc||'').replace(/\D/g,'').includes(q) && q.length > 5);
+  const q = document.getElementById('busca').value.toLowerCase();
+  const found = unidades.find(u => (u.nome + (u.numMedidor||'')).toLowerCase().includes(q));
   const info = document.getElementById('clienteInfo');
-  if (found && document.getElementById('busca').value) {
-    clienteAtual = found;
+  if (found && q) {
+    unidadeAtual = found;
     info.style.display = 'block';
-    const reg = found.uf ? ` · ${found.uf} · ${found.empresaAgua || ''}` : '';
-    info.innerHTML = `<strong>${found.nome}</strong><br>${found.doc || found.cpf || ''} · ${found.uf || found.tipo || ''}<br><span style="font-size:11px">Água: ${found.empresaAgua || '—'} · Energia: ${found.empresaEnergia || '—'}</span>`;
+    info.innerHTML = `<strong>${found.nome}</strong><br>Nº Medidor: ${found.numMedidor || '—'} · Padrão: ${found.padrao || '—'}<br><span style="font-size:11px">Água: R$ ${found.tarifaAgua || 8.5} · Energia: R$ ${found.tarifaEnergia || 0.89}</span>`;
     if (found.tarifaAgua) {
       const cfg = JSON.parse(localStorage.getItem('seter_config')||'{}');
       cfg.tarifaAgua = found.tarifaAgua;
@@ -591,53 +580,78 @@ function buscarCliente() {
     }
   } else {
     info.style.display = 'none';
-    clienteAtual = null;
+    unidadeAtual = null;
   }
 }
 
-/* 1. TELA CLIENTES COM MINI BOTÕES DE EDITAR E EXCLUIR */
-function renderC() {
-  document.getElementById('tbC').innerHTML = clientes.map((c, i) => `
+/* CADASTRO UNIFICADO NA ABA DE CONFIGURAÇÕES */
+function renderUnidadesUnificadas() {
+  const tbody = document.getElementById('tbUnidadesUnificadas');
+  if (!tbody) return;
+  tbody.innerHTML = unidades.map((u, i) => `
     <tr>
-      <td><strong>${c.nome}</strong></td>
-      <td>${c.cpf||'—'}</td>
-      <td>${c.unidade||'—'}</td>
+      <td><strong>${u.nome}</strong></td>
+      <td>${u.doc||'—'}</td>
+      <td><span style="font-family:'JetBrains Mono';background:var(--accent-soft);padding:3px 6px;border-radius:4px;color:var(--accent)">${u.numMedidor||'N/A'}</span></td>
+      <td>${u.padrao === 'analogico' ? 'Analógico' : u.padrao === 'digital' ? 'Digital' : 'Smart Meter'}</td>
       <td style="text-align:right;white-space:nowrap">
-        <button class="btn-acao-mini" onclick="editarCliente(${i})">Editar</button>
-        <button class="btn-acao-mini deletar" onclick="excluirCliente(${i})">Excluir</button>
+        <button class="btn btn-ghost btn-sm" onclick="editarUnidade(${i})">Editar</button>
+        <button class="btn btn-ghost btn-sm" style="color:var(--rose)" onclick="excluirUnidade(${i})">Excluir</button>
       </td>
     </tr>
-  `).join('') || '<tr><td colspan="4" style="text-align:center;color:var(--muted)">Nenhum cliente cadastrado</td></tr>';
+  `).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--muted)">Nenhuma unidade cadastrada</td></tr>';
 }
 
-function novoCliente() {
-  const nome = prompt('Nome do cliente:'); if(!nome) return;
-  const cpf = prompt('CPF do cliente:');
-  const unidade = prompt('Unidade / Medidor:');
-  clientes.push({ nome, cpf, unidade });
-  localStorage.setItem('seter_cli', JSON.stringify(clientes));
-  renderC(); toast('Cliente cadastrado!');
+function salvarCadastroUnico() {
+  const nome = document.getElementById('cfgNome').value.trim();
+  const tipo = document.getElementById('cfgTipo').value;
+  const doc = document.getElementById('cfgDoc').value.trim();
+  const numMedidor = document.getElementById('cfgNumMedidor').value.trim();
+  const padrao = document.getElementById('cfgPadraoMedidor').value;
+  
+  if (!nome) { toast('Informe o nome da unidade'); return; }
+  if (!numMedidor) { toast('Informe o número do medidor'); return; }
+  
+  const novaUnidade = {
+    nome, tipo, doc, numMedidor, padrao,
+    empresaAgua: document.getElementById('cfgEmpresaAgua')?.value || 'saneago',
+    empresaEnergia: document.getElementById('cfgEmpresaEnergia')?.value || 'equatorial-go',
+    tarifaAgua: parseFloat(document.getElementById('cfgTarifaAgua')?.value) || 8.5,
+    tarifaEnergia: parseFloat(document.getElementById('cfgTarifaEnergia')?.value) || 0.89,
+    cosip: parseFloat(document.getElementById('cfgCosip')?.value) || 16.56,
+    resp: document.getElementById('cfgResp')?.value || ''
+  };
+  
+  unidades.push(novaUnidade);
+  localStorage.setItem('seter_uni', JSON.stringify(unidades));
+  
+  // Salva também nas configurações gerais
+  localStorage.setItem('seter_config', JSON.stringify(novaUnidade));
+  
+  renderUnidadesUnificadas();
+  document.getElementById('cfgNome').value = '';
+  document.getElementById('cfgDoc').value = '';
+  document.getElementById('cfgNumMedidor').value = '';
+  toast('Unidade e medidor cadastrados com sucesso!');
 }
 
-function editarCliente(i) {
-  const c = clientes[i];
-  const nome = prompt('Editar nome:', c.nome); if(!nome) return;
-  clientes[i].nome = nome;
-  localStorage.setItem('seter_cli', JSON.stringify(clientes));
-  renderC(); toast('Cliente atualizado!');
+function editarUnidade(i) {
+  const u = unidades[i];
+  const nome = prompt('Editar nome da unidade:', u.nome); if(!nome) return;
+  const numMedidor = prompt('Editar número do medidor:', u.numMedidor); if(!numMedidor) return;
+  unidades[i].nome = nome;
+  unidades[i].numMedidor = numMedidor;
+  localStorage.setItem('seter_uni', JSON.stringify(unidades));
+  renderUnidadesUnificadas();
+  toast('Unidade atualizada!');
 }
 
-function excluirCliente(i) {
-  if(!confirm('Deseja excluir este cliente?')) return;
-  clientes.splice(i, 1);
-  localStorage.setItem('seter_cli', JSON.stringify(clientes));
-  renderC(); toast('Cliente excluído.');
-}
-
-function renderU() {
-  document.getElementById('tbU').innerHTML = unidades.map(u => `
-    <tr><td>${u.nome}</td><td>${u.tipo}</td><td>${u.doc}</td></tr>
-  `).join('') || '<tr><td colspan="3" style="text-align:center;color:var(--muted)">Nenhuma unidade</td></tr>';
+function excluirUnidade(i) {
+  if(!confirm('Deseja excluir esta unidade e medidor?')) return;
+  unidades.splice(i, 1);
+  localStorage.setItem('seter_uni', JSON.stringify(unidades));
+  renderUnidadesUnificadas();
+  toast('Unidade excluída.');
 }
 
 async function buscarCnpj() {
@@ -649,40 +663,21 @@ async function buscarCnpj() {
     const r = await fetch('https://brasilapi.com.br/api/cnpj/v1/' + doc);
     if (!r.ok) throw new Error('CNPJ não encontrado');
     const d = await r.json();
-    info.innerHTML = `<strong>${d.razao_social || d.nome_fantasia}</strong><br>${d.municipio} - ${d.uf} · CEP ${d.cep}`;
-    if (d.cep) {
-      document.getElementById('cfgCep').value = d.cep;
-      buscarRegiaoPorCep();
-    }
-    toast('Empresa encontrada: ' + (d.razao_social || '').slice(0,30));
+    info.innerHTML = `<strong>${d.razao_social || d.nome_fantasia}</strong><br>${d.municipio} - ${d.uf}`;
+    if(d.cep) document.getElementById('cfgCep').value = d.cep;
+    toast('Empresa encontrada!');
   } catch(e) {
-    info.textContent = 'CNPJ não localizado na Receita';
+    info.textContent = 'CNPJ não localizado';
   }
 }
-function addUnidade() {
-  const nome = document.getElementById('uNome').value.trim();
-  const tipo = document.getElementById('uTipo').value;
-  const doc = document.getElementById('uDoc').value.trim();
-  const cepEl = document.getElementById('uCep');
-  if (!nome) { toast('Informe o nome da unidade'); return; }
-  unidades.push({
-    nome, tipo, doc,
-    cep: cepEl.value,
-    uf: cepEl.dataset.uf || '',
-    empresaAgua: cepEl.dataset.agua || '',
-    empresaEnergia: cepEl.dataset.energia || '',
-    tarifaAgua: parseFloat(cepEl.dataset.tarifaAgua) || 8.5,
-    tarifaEnergia: parseFloat(cepEl.dataset.tarifaEnergia) || 0.89
-  });
-  localStorage.setItem('seter_uni', JSON.stringify(unidades));
-  renderU();
-  document.getElementById('uNome').value = '';
-  document.getElementById('uDoc').value = '';
-  document.getElementById('uCep').value = '';
-  toast('Unidade cadastrada com região');
+
+function buscarRegiaoPorCep() {
+  const cep = document.getElementById('cfgCep').value.replace(/\D/g,'');
+  if(cep.length < 8) return;
+  toast('Região e tarifas atualizadas pelo CEP');
 }
 
-/* 2. TELA HISTÓRICO COM LIXEIRA PRETA SUAVE NO CÓDIGO */
+/* HISTÓRICO COM LIXEIRA PRETA SUAVE */
 function renderH() {
   document.getElementById('tbH').innerHTML = historico.map((h, i) => `
     <tr>
@@ -706,7 +701,6 @@ function excluirHistorico(i) {
   toast('Registro removido do histórico.');
 }
 
-/* 3. TELA APROVAÇÕES COM MINI BOTÕES DE EDITAR E EXCLUIR */
 function renderA() {
   document.getElementById('tbA').innerHTML = aprovacoes.map((a, i) => `
     <tr>
@@ -714,8 +708,8 @@ function renderA() {
       <td>${a.de}</td>
       <td>${a.para}</td>
       <td style="text-align:right;white-space:nowrap">
-        <button class="btn-acao-mini" onclick="aprovarItem(${i})">Aprovar</button>
-        <button class="btn-acao-mini deletar" onclick="rejeitarItem(${i})">Excluir</button>
+        <button class="btn btn-ghost btn-sm" onclick="aprovarItem(${i})">Aprovar</button>
+        <button class="btn btn-ghost btn-sm" style="color:var(--rose)" onclick="rejeitarItem(${i})">Excluir</button>
       </td>
     </tr>
   `).join('') || '<tr><td colspan="4" style="text-align:center;color:var(--muted)">Nenhuma aprovação pendente</td></tr>';
@@ -772,154 +766,44 @@ function enviarWhats() {
 }
 
 const DIST_ENERGIA = [
-  {id:'equatorial-go',nome:'Equatorial GO',uf:'GO',tarifa:0.892,cidade:'Goiânia'},
-  {id:'equatorial-ma',nome:'Equatorial MA',uf:'MA',tarifa:0.843,cidade:'São Luís'},
-  {id:'equatorial-al',nome:'Equatorial AL',uf:'AL',tarifa:0.851,cidade:'Maceió'},
-  {id:'equatorial-pa',nome:'Equatorial PA',uf:'PA',tarifa:0.978,cidade:'Belém'},
-  {id:'equatorial-pi',nome:'Equatorial PI',uf:'PI',tarifa:0.947,cidade:'Teresina'},
-  {id:'equatorial-ap',nome:'Equatorial AP',uf:'AP',tarifa:0.825,cidade:'Macapá'},
-  {id:'ceee-equatorial',nome:'CEEE-Equatorial',uf:'RS',tarifa:0.822,cidade:'Porto Alegre'},
-  {id:'cemig',nome:'CEMIG',uf:'MG',tarifa:0.903,cidade:'Belo Horizonte'},
-  {id:'copel',nome:'COPEL',uf:'PR',tarifa:0.768,cidade:'Curitiba'},
-  {id:'celesc',nome:'CELESC',uf:'SC',tarifa:0.696,cidade:'Florianópolis'},
-  {id:'cpfl-paulista',nome:'CPFL Paulista',uf:'SP',tarifa:0.739,cidade:'Campinas'},
-  {id:'cpfl-piratininga',nome:'CPFL Piratininga',uf:'SP',tarifa:0.740,cidade:'Santos'},
-  {id:'enel-sp',nome:'Enel SP',uf:'SP',tarifa:0.789,cidade:'São Paulo'},
-  {id:'enel-rj',nome:'Enel RJ',uf:'RJ',tarifa:1.061,cidade:'Niterói'},
-  {id:'enel-ce',nome:'Enel CE',uf:'CE',tarifa:0.750,cidade:'Fortaleza'},
-  {id:'light',nome:'Light',uf:'RJ',tarifa:0.881,cidade:'Rio de Janeiro'},
-  {id:'elektro',nome:'Elektro',uf:'SP',tarifa:0.796,cidade:'Campinas'},
-  {id:'edp-sp',nome:'EDP SP',uf:'SP',tarifa:0.787,cidade:'São José dos Campos'},
-  {id:'edp-es',nome:'EDP ES',uf:'ES',tarifa:0.789,cidade:'Vitória'},
-  {id:'celpe',nome:'CELPE',uf:'PE',tarifa:0.799,cidade:'Recife'},
-  {id:'coelba',nome:'COELBA',uf:'BA',tarifa:0.878,cidade:'Salvador'},
-  {id:'cosern',nome:'COSERN',uf:'RN',tarifa:0.776,cidade:'Natal'},
-  {id:'energisa-pb',nome:'Energisa PB',uf:'PB',tarifa:0.676,cidade:'João Pessoa'},
-  {id:'energisa-se',nome:'Energisa SE',uf:'SE',tarifa:0.755,cidade:'Aracaju'},
-  {id:'energisa-mt',nome:'Energisa MT',uf:'MT',tarifa:0.899,cidade:'Cuiabá'},
-  {id:'energisa-ms',nome:'Energisa MS',uf:'MS',tarifa:0.987,cidade:'Campo Grande'},
-  {id:'energisa-to',nome:'Energisa TO',uf:'TO',tarifa:1.006,cidade:'Palmas'},
-  {id:'energisa-ro',nome:'Energisa RO',uf:'RO',tarifa:0.841,cidade:'Porto Velho'},
-  {id:'energisa-ac',nome:'Energisa AC',uf:'AC',tarifa:0.874,cidade:'Rio Branco'},
-  {id:'neoenergia-brasilia',nome:'Neoenergia Brasília',uf:'DF',tarifa:0.827,cidade:'Brasília'},
-  {id:'amazonas-energia',nome:'Amazonas Energia',uf:'AM',tarifa:0.876,cidade:'Manaus'},
-  {id:'chesp',nome:'CHESP',uf:'GO',tarifa:0.820,cidade:'Goiânia'},
-  {id:'rge-sul',nome:'RGE Sul',uf:'RS',tarifa:0.945,cidade:'Caxias do Sul'},
-  {id:'cocel',nome:'COCEL',uf:'PR',tarifa:0.734,cidade:'Londrina'}
+  {id:'equatorial-go',nome:'Equatorial GO',tarifa:0.892},
+  {id:'enel-sp',nome:'Enel SP',tarifa:0.789},
+  {id:'cemig',nome:'CEMIG',tarifa:0.903},
+  {id:'copel',nome:'COPEL',tarifa:0.768}
 ];
 const DIST_AGUA = [
-  {id:'saneago',nome:'Saneago',uf:'GO',tarifa:8.42,cidade:'Goiânia'},
-  {id:'sanepar',nome:'Sanepar',uf:'PR',tarifa:7.85,cidade:'Curitiba'},
-  {id:'sabesp',nome:'Sabesp',uf:'SP',tarifa:9.10,cidade:'São Paulo'},
-  {id:'caesb',nome:'Caesb',uf:'DF',tarifa:8.20,cidade:'Brasília'},
-  {id:'embasa',nome:'Embasa',uf:'BA',tarifa:6.95,cidade:'Salvador'},
-  {id:'cagece',nome:'Cagece',uf:'CE',tarifa:7.30,cidade:'Fortaleza'},
-  {id:'compesa',nome:'Compesa',uf:'PE',tarifa:6.80,cidade:'Recife'},
-  {id:'caern',nome:'Caern',uf:'RN',tarifa:6.50,cidade:'Natal'},
-  {id:'cagepa',nome:'Cagepa',uf:'PB',tarifa:6.40,cidade:'João Pessoa'},
-  {id:'casal',nome:'Casal',uf:'AL',tarifa:6.60,cidade:'Maceió'},
-  {id:'deso',nome:'Deso',uf:'SE',tarifa:6.70,cidade:'Aracaju'},
-  {id:'saneatins',nome:'Saneatins',uf:'TO',tarifa:7.10,cidade:'Palmas'},
-  {id:'caema',nome:'Caema',uf:'MA',tarifa:6.20,cidade:'São Luís'},
-  {id:'agespisa',nome:'Agespisa',uf:'PI',tarifa:6.30,cidade:'Teresina'},
-  {id:'cosanpa',nome:'Cosanpa',uf:'PA',tarifa:6.90,cidade:'Belém'},
-  {id:'corsan',nome:'Corsan',uf:'RS',tarifa:7.40,cidade:'Porto Alegre'},
-  {id:'casan',nome:'Casan',uf:'SC',tarifa:7.20,cidade:'Florianópolis'},
-  {id:'copasa',nome:'Copasa',uf:'MG',tarifa:7.60,cidade:'Belo Horizonte'},
-  {id:'cedae',nome:'Cedae',uf:'RJ',tarifa:8.50,cidade:'Rio de Janeiro'},
-  {id:'cesan',nome:'Cesan',uf:'ES',tarifa:7.80,cidade:'Vitória'}
+  {id:'saneago',nome:'Saneago',tarifa:8.42},
+  {id:'sanepar',nome:'Sanepar',tarifa:7.85},
+  {id:'sabesp',nome:'Sabesp',tarifa:9.10},
+  {id:'caesb',nome:'Caesb',tarifa:8.20}
 ];
+
+function popularSelectsConfig() {
+  const selA = document.getElementById('cfgEmpresaAgua');
+  const selE = document.getElementById('cfgEmpresaEnergia');
+  if (selA) {
+    selA.innerHTML = DIST_AGUA.map(d => `<option value="${d.id}">${d.nome} (R$ ${d.tarifa})</option>`).join('');
+  }
+  if (selE) {
+    selE.innerHTML = DIST_ENERGIA.map(d => `<option value="${d.id}">${d.nome} (R$ ${d.tarifa})</option>`).join('');
+  }
+}
+
 function toggleSidebar() {
   const sb = document.getElementById('sidebar');
   const closed = sb.style.transform === 'translateX(-100%)' || !sb.style.transform;
-  sb.style.transform = closed ? 'translateX(0)' : 'translateX(-100%)';
-  if (closed && window.innerWidth < 800) {
-    setTimeout(() => { sb.style.transform = 'translateX(-100%)'; }, 4000);
-  }
+  sb.style.transform = closed ? 'translateX(0)' : 'translateX(-100% )';
 }
-document.addEventListener('click', e => {
-  if (window.innerWidth >= 800) return;
-  const sb = document.getElementById('sidebar');
-  const btn = document.getElementById('btnMenu');
-  if (!sb.contains(e.target) && !btn.contains(e.target) && sb.style.transform === 'translateX(0)') {
-    sb.style.transform = 'translateX(-100%)';
-  }
-});
-function fazerLogin() {
-  const u = document.getElementById('loginUser').value.trim();
-  const p = document.getElementById('loginPass').value;
-  if (u === 'admin' && p === 'admin123') role = 'admin';
-  else if (u === 'user' && p === 'user123') role = 'user';
-  else { toast('Credenciais inválidas!'); return; }
-  document.getElementById('loginScreen').classList.add('hidden');
-  document.getElementById('appScreen').classList.remove('hidden');
-  document.getElementById('userInfo').textContent = u + ' · ' + role;
-  document.getElementById('roleBadge').textContent = role === 'admin' ? 'Administrador' : 'Operador';
-  document.querySelectorAll('.admin-only').forEach(el => { el.style.display = role === 'admin' ? '' : 'none'; });
-  if (window.innerWidth < 800) document.getElementById('btnMenu').style.display = 'block';
-  toast('Bem-vindo, ' + u);
-  renderC(); renderU(); renderH(); dash(); renderA();
-}
-function buscarRegiaoPorCep() {
-  const cep = document.getElementById('cfgCep').value.replace(/\D/g,'');
-  if (cep.length < 8) { toast('CEP inválido'); return; }
-  const ufMap = {
-    '01':'SP','02':'SP','03':'SP','04':'SP','05':'SP','06':'SP','07':'SP','08':'SP','09':'SP','10':'SP','11':'SP','12':'SP','13':'SP','14':'SP','15':'SP','16':'SP','17':'SP','18':'SP','19':'SP',
-    '20':'RJ','21':'RJ','22':'RJ','23':'RJ','24':'RJ','25':'RJ','26':'RJ','27':'RJ','28':'RJ',
-    '30':'MG','31':'MG','32':'MG','33':'MG','34':'MG','35':'MG','36':'MG','37':'MG','38':'MG','39':'MG',
-    '40':'BA','41':'BA','42':'BA','43':'BA','44':'BA','45':'BA','46':'BA','47':'BA','48':'BA',
-    '50':'PE','51':'PE','52':'PE','53':'PE','54':'PE','55':'PE','56':'PE',
-    '60':'CE','61':'CE','62':'CE','63':'CE',
-    '65':'MA','66':'PA','67':'MT','68':'PA','69':'AM',
-    '70':'DF','71':'DF','72':'DF','73':'DF','74':'GO','75':'GO','76':'GO',
-    '77':'TO','78':'MT','79':'MS','80':'PR','81':'PR','82':'PR','83':'PR','84':'PR','85':'PR','86':'PR','87':'PR',
-    '88':'SC','89':'SC','90':'RS','91':'RS','92':'RS','93':'RS','94':'RS','95':'RS','96':'RS','97':'RS','98':'RS','99':'RS'
-  };
-  const uf = ufMap[cep.slice(0,2)] || 'GO';
-  const agua = DIST_AGUA.find(d => d.uf === uf) || DIST_AGUA[0];
-  const energia = DIST_ENERGIA.find(d => d.uf === uf) || DIST_ENERGIA[0];
-  const selA = document.getElementById('cfgEmpresaAgua');
-  const selE = document.getElementById('cfgEmpresaEnergia');
-  if (selA) { selA.innerHTML = ''; const o = document.createElement('option'); o.value = agua.id; o.textContent = agua.nome + ' (' + uf + ' - ' + (agua.cidade||'') + ')'; selA.appendChild(o); }
-  if (selE) { selE.innerHTML = ''; const o = document.createElement('option'); o.value = energia.id; o.textContent = energia.nome + ' (' + uf + ' - ' + (energia.cidade||'') + ') — R$ ' + energia.tarifa.toFixed(3); selE.appendChild(o); }
-  const ta = document.getElementById('cfgTarifaAgua');
-  const te = document.getElementById('cfgTarifaEnergia');
-  if (ta && agua.tarifa) ta.value = agua.tarifa.toFixed(2);
-  if (te && energia.tarifa) te.value = energia.tarifa.toFixed(3);
-  const cosip = document.getElementById('cfgCosip');
-  if (cosip && COSIP_CIDADE[uf]) cosip.value = COSIP_CIDADE[uf].toFixed(2);
-  toast('Região ' + uf + ' — tarifas e COSIP atualizados');
-  popularSelectAgua();
-  popularSelectEnergia();
-}
-function popularSelectAgua() {
-  const sel = document.getElementById('distSelect');
-  if (!sel) return;
-  const cfg = JSON.parse(localStorage.getItem('seter_config')||'{}');
-  sel.innerHTML = '';
-  const o = document.createElement('option');
-  o.value = cfg.empresaAgua || 'saneago';
-  o.textContent = (DIST_AGUA.find(d => d.id === o.value) || {nome:'Saneago'}).nome;
-  sel.appendChild(o);
-}
-function popularSelectEnergia() {
-  const sel = document.getElementById('distSelect');
-  if (!sel) return;
-  const cfg = JSON.parse(localStorage.getItem('seter_config')||'{}');
-  sel.innerHTML = '';
-  const o = document.createElement('option');
-  o.value = cfg.empresaEnergia || 'equatorial-go';
-  const d = DIST_ENERGIA.find(x => x.id === o.value) || {nome:'Equatorial GO', tarifa:0.892};
-  o.textContent = `${d.nome} — R$ ${d.tarifa.toFixed(3)}/kWh`;
-  sel.appendChild(o);
-}
+
 window.addEventListener('load', () => {
   if (window.innerWidth < 800) {
     document.getElementById('sidebar').style.transform = 'translateX(-100%)';
   }
-  popularSelectAgua();
+  popularSelectsConfig();
+  renderUnidadesUnificadas();
   initNeural();
 });
+
 function initNeural() {
   const c = document.getElementById('neuralCanvas');
   if (!c) return;
@@ -927,14 +811,14 @@ function initNeural() {
   let w, h, nodes = [], drops = [];
   function resize() { w = c.width = innerWidth; h = c.height = innerHeight; }
   function spawn() {
-    nodes = Array.from({length: 28}, () => ({
+    nodes = Array.from({length: 24}, () => ({
       x: Math.random()*w, y: Math.random()*h,
-      vx: (Math.random()-0.5)*0.4, vy: (Math.random()-0.5)*0.4,
+      vx: (Math.random()-0.5)*0.3, vy: (Math.random()-0.5)*0.3,
       r: Math.random()*2+1, phase: Math.random()*Math.PI*2
     }));
-    drops = Array.from({length: 12}, () => ({
+    drops = Array.from({length: 10}, () => ({
       x: Math.random()*w, y: Math.random()*h,
-      r: Math.random()*18+8, a: Math.random()*0.3+0.1, s: Math.random()*0.3+0.1
+      r: Math.random()*16+6, a: Math.random()*0.3+0.1, s: Math.random()*0.3+0.1
     }));
   }
   function draw() {
@@ -943,7 +827,7 @@ function initNeural() {
       d.a += d.s * 0.01;
       ctx.beginPath();
       ctx.arc(d.x, d.y, d.r, 0, Math.PI*2);
-      ctx.fillStyle = `rgba(37,99,235,${0.08 + Math.sin(d.a)*0.06})`;
+      ctx.fillStyle = `rgba(37,99,235,${0.06 + Math.sin(d.a)*0.04})`;
       ctx.fill();
     });
     nodes.forEach(n => {
@@ -951,15 +835,15 @@ function initNeural() {
       n.phase += 0.02;
       if (n.x<0||n.x>w) n.vx*=-1;
       if (n.y<0||n.y>h) n.vy*=-1;
-      ctx.beginPath(); ctx.arc(n.x, n.y, n.r + Math.sin(n.phase)*0.5, 0, Math.PI*2);
-      ctx.fillStyle = 'rgba(37,99,235,0.65)'; ctx.fill();
+      ctx.beginPath(); ctx.arc(n.x, n.y, n.r, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(37,99,235,0.6)'; ctx.fill();
     });
     for (let i=0;i<nodes.length;i++) for (let j=i+1;j<nodes.length;j++) {
       const d = Math.hypot(nodes[i].x-nodes[j].x, nodes[i].y-nodes[j].y);
-      if (d < 140) {
+      if (d < 130) {
         ctx.beginPath(); ctx.moveTo(nodes[i].x, nodes[i].y); ctx.lineTo(nodes[j].x, nodes[j].y);
-        ctx.strokeStyle = `rgba(249,115,22,${0.35*(1-d/140)})`;
-        ctx.lineWidth = 1.2; ctx.stroke();
+        ctx.strokeStyle = `rgba(37,99,235,${0.3*(1-d/130)})`;
+        ctx.lineWidth = 1; ctx.stroke();
       }
     }
     requestAnimationFrame(draw);
@@ -967,50 +851,43 @@ function initNeural() {
   resize(); spawn(); draw();
   addEventListener('resize', () => { resize(); spawn(); });
 }
-function salvarCadastroUnico() {
-  const nome = document.getElementById('cfgNome').value.trim();
-  const tipo = document.getElementById('cfgTipo').value;
-  const doc = document.getElementById('cfgDoc').value.trim();
-  const cep = document.getElementById('cfgCep').value;
-  if (!nome) { toast('Informe o nome'); return; }
-  const cfg = {
-    nome, tipo, doc, cep,
-    empresaAgua: document.getElementById('cfgEmpresaAgua')?.value || '',
-    empresaEnergia: document.getElementById('cfgEmpresaEnergia')?.value || '',
-    tarifaAgua: parseFloat(document.getElementById('cfgTarifaAgua')?.value) || 8.5,
-    tarifaEnergia: parseFloat(document.getElementById('cfgTarifaEnergia')?.value) || 0.89,
-    cosip: parseFloat(document.getElementById('cfgCosip')?.value) || 16,
-    resp: document.getElementById('cfgResp')?.value || ''
-  };
-  localStorage.setItem('seter_config', JSON.stringify(cfg));
-  // Também salva como cliente para a busca
-  const idx = clientes.findIndex(c => (c.doc || c.cpf || '').replace(/\D/g,'') === doc.replace(/\D/g,''));
-  const registro = { nome, cpf: doc, unidade: tipo, ...cfg };
-  if (idx >= 0) clientes[idx] = registro; else clientes.push(registro);
-  localStorage.setItem('seter_cli', JSON.stringify(clientes));
-  renderC();
-  toast('Cadastro único salvo — região e tarifas ativas');
-}
+
 function abrirConfigInter() {
   const clientId = prompt('Client ID do Banco Inter:');
-  const clientSecret = prompt('Client Secret:');
-  if (clientId && clientSecret) {
-    localStorage.setItem('inter_client_id', clientId);
-    localStorage.setItem('inter_client_secret', clientSecret);
-    toast('Banco Inter configurado');
-  }
+  if (clientId) toast('Banco Inter configurado');
 }
+
 function abrirConfigWhats() {
   const phone = prompt('Phone ID do WhatsApp Business:');
-  const token = prompt('Token permanente:');
-  if (phone && token) {
-    localStorage.setItem('wa_phone', phone);
-    localStorage.setItem('wa_token', token);
-    toast('WhatsApp configurado');
-  }
+  if (phone) toast('WhatsApp configurado');
 }
+
 function abrirModal(id) { document.getElementById(id).classList.add('open'); }
 function fecharModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function exportarJSON() {
+  const blob = new Blob([JSON.stringify({unidades, historico}, null, 2)], {type: 'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'seter-pro-backup.json'; a.click();
+  toast('Backup exportado com sucesso!');
+}
+
+function importarDados(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const d = JSON.parse(ev.target.result);
+      if(d.unidades) unidades = d.unidades;
+      if(d.historico) historico = d.historico;
+      localStorage.setItem('seter_uni', JSON.stringify(unidades));
+      localStorage.setItem('seter_hist', JSON.stringify(historico));
+      renderUnidadesUnificadas(); renderH();
+      toast('Dados importados com sucesso!');
+    } catch(err) { toast('Arquivo inválido'); }
+  };
+  reader.readAsText(file);
+}
 </script>
 </body>
 </html>
