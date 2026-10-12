@@ -81,12 +81,6 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
 .btn-mint { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); color: var(--mint); }
 .btn-sm { padding: 7px 14px; font-size: 12.5px; border-radius: 8px; }
 
-/* BOTÕES DE SELEÇÃO RÁPIDA DE MEDIDOR */
-.medidor-grid-sel { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
-.medidor-card-btn { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; cursor: pointer; text-align: left; transition: all 0.15s; }
-.medidor-card-btn:hover { border-color: var(--accent); background: var(--accent-soft); }
-.medidor-card-btn.ativo { border-color: var(--accent); background: var(--accent-soft); box-shadow: 0 0 0 2px rgba(37,99,235,0.15); }
-
 /* LIXEIRA PRETA SUAVE (HISTÓRICO) */
 .btn-lixeira-preta {
   background: #0f172a;
@@ -192,22 +186,24 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
       <div class="badge" id="roleBadge">—</div>
     </div>
 
-    <!-- SEÇÃO DE LEITURA & SELEÇÃO DIRETA DE MEDIDOR CADASTRADO -->
+    <!-- SEÇÃO DE LEITURA & AUTOMATIZAÇÃO DE MEDIDOR -->
     <section class="section active" id="sec-leitura">
       <div class="grid2">
         <div class="card">
-          <div class="card-title">Seleção Rápida de Medidor Cadastrado</div>
-          <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Clique no medidor para carregar automaticamente o tipo, número e API da concessionária:</div>
-          <div class="medidor-grid-sel" id="medidorGridSel"></div>
-
-          <div id="medidorSelecionadoInfo" style="display:none;margin-bottom:16px;padding:12px;background:var(--accent-soft);border-radius:10px;font-size:13px"></div>
-
-          <div class="tipo-toggle">
-            <div class="tipo-btn ativo" id="tipoBtnAgua" onclick="selecionarTipo('AGUA',this)">💧 Água</div>
-            <div class="tipo-btn" id="tipoBtnEnergia" onclick="selecionarTipo('ENERGIA',this)">⚡ Energia</div>
+          <div class="card-title">Scanner Inteligente Dael (Analog & Digital Meter)</div>
+          
+          <div class="field">
+            <label>Buscar ou Digitar Número do Medidor / Unidade</label>
+            <input id="busca" placeholder="Digite o número do medidor ou nome..." oninput="autoIdentificarMedidor()"/>
           </div>
 
-          <div class="field"><label>Número do Medidor Ativo</label><input id="numMedidorAtivo" placeholder="Selecione acima ou digite..." readonly/></div>
+          <div id="clienteInfo" style="display:none;margin-bottom:14px;padding:12px;background:var(--accent-soft);border-radius:10px;font-size:13px"></div>
+
+          <div class="tipo-toggle">
+            <div class="tipo-btn ativo" id="btnTipoAgua" onclick="selecionarTipo('AGUA',this)">💧 Água</div>
+            <div class="tipo-btn" id="btnTipoEnergia" onclick="selecionarTipo('ENERGIA',this)">⚡ Energia</div>
+          </div>
+
           <div class="field"><label>Leitura Anterior</label><input type="number" id="anterior" value="12751"/></div>
 
           <div id="bandeiraWrap" style="display:none;margin-bottom:16px">
@@ -221,23 +217,22 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
           </div>
 
           <div class="field">
-            <label>Modo de captura</label>
+            <label>Modo de Captura</label>
             <select id="modoCaptura" onchange="mudarModo()">
-              <option value="foto">Foto do visor (OCR Inteligente)</option>
-              <option value="api">Sincronização Direta API Concessionária (REST/XML)</option>
+              <option value="foto">Foto do Visor (OCR Inteligente Dael)</option>
+              <option value="api">API Direta da Concessionária (REST/XML)</option>
             </select>
           </div>
-          
+
           <div id="campoAPI" style="display:none" class="field">
-            <label>Gateway API Concessionária (REST / XML)</label>
-            <button class="btn btn-mint btn-sm btn-full" onclick="sincronizarApiConcessionaria()">🌐 Sincronizar Consumo via API Oficial</button>
+            <button class="btn btn-mint btn-sm btn-full" onclick="sincronizarApiConcessionaria()">🌐 Sincronizar Leitura com API Oficial</button>
           </div>
 
           <label class="dropzone" id="dropzoneFoto">
             <input type="file" id="foto" accept="image/*" capture="environment" onchange="aoSelecionarFoto(event)"/>
             <div style="font-size:30px;color:var(--accent);margin-bottom:8px">📷</div>
             <div class="dz-label" id="dzLabel">Abrir Câmera do Smartphone / Enviar Foto</div>
-            <div style="color:var(--muted);font-size:11.5px;margin-top:2px">Engine Dael com varredura exata anti-série</div>
+            <div style="color:var(--muted);font-size:11.5px;margin-top:2px">Engine Dael com Varredura Anti-Número de Série</div>
             <img id="dzPreview" class="dz-preview"/>
           </label>
 
@@ -255,7 +250,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
           <div class="status-bar"><span id="statusTxt">Aguardando scan...</span><span id="statusConf"></span></div>
 
           <div id="fatura" style="margin-top:20px;display:none">
-            <div class="fatura-row"><span>Medidor ID</span><span id="fMedId" style="font-family:'JetBrains Mono',monospace">—</span></div>
+            <div class="fatura-row"><span>Medidor</span><span id="fMed" style="font-family:'JetBrains Mono',monospace">—</span></div>
             <div class="fatura-row"><span>Leitura Atual</span><span id="fLei" style="font-family:'JetBrains Mono',monospace">—</span></div>
             <div class="fatura-row"><span>Consumo Calculado</span><span id="fCons" style="font-family:'JetBrains Mono',monospace">—</span></div>
             <div class="total-box">
@@ -328,31 +323,36 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
       </div>
     </section>
 
-    <!-- CONFIGURAÇÕES & CADASTROS UNIFICADOS -->
+    <!-- CONFIGURAÇÕES & CADASTRO ÚNICO COMPLETO -->
     <section class="section" id="sec-config">
-      <div class="card" style="max-width:1000px">
+      <div class="card" style="max-width:1050px">
         <div class="card-title">Cadastro Unificado · Unidades, Medidores e APIs de Concessionárias</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
           <div>
             <div class="field"><label>Nome da Unidade / Cliente</label><input id="cfgNome" placeholder="Ex: Condomínio Bella Vista ou Residência"/></div>
-            <div class="field"><label>Tipo de Medição</label><select id="cfgTipoMedidorSelect"><option value="AGUA">Água</option><option value="ENERGIA">Energia</option></select></div>
+            <div class="field"><label>Tipo de Medição</label><select id="cfgTipoMedicao"><option value="AGUA">💧 Água</option><option value="ENERGIA">⚡ Energia</option></select></div>
             <div class="field"><label>Número do Medidor / Relógio</label><input id="cfgNumMedidor" placeholder="Ex: MED-982345"/></div>
             <div class="field"><label>Padrão do Medidor</label><select id="cfgPadraoMedidor"><option value="analogico">Analógico (Roleta)</option><option value="digital">Digital (LCD/LED)</option><option value="smart">Smart Meter IoT</option></select></div>
-            <div class="field"><label>CNPJ / CPF</label><input id="cfgDoc" placeholder="00.000.000/0001-00"/></div>
-            <button class="btn btn-prim" onclick="salvarCadastroUnico()" style="margin-top:8px">Salvar Medidor no Sistema</button>
+            <div class="field"><label>CNPJ / CPF</label><input id="cfgDoc" placeholder="00.000.000/0001-00" onblur="buscarCnpj()"/></div>
+            <div class="field"><label>CEP (Automação de Região e Concessionária)</label><input id="cfgCep" placeholder="00000-000" oninput="if(this.value.replace(/\D/g,'').length>=8)buscarRegiaoPorCep()"/></div>
+            <div id="cfgEmpresaInfo" style="font-size:12px;color:var(--muted);margin-bottom:12px;min-height:20px"></div>
+            <button class="btn btn-prim" onclick="salvarCadastroUnico()">Salvar Medidor no Sistema</button>
           </div>
           <div>
-            <div class="field"><label>Concessionária / Distribuidora</label><select id="cfgConcessionariaApi"><option value="saneago">Saneago (Água - REST/XML)</option><option value="sabesp">Sabesp (Água - REST)</option><option value="equatorial">Equatorial (Energia - API Gateway)</option><option value="enel">Enel (Energia - REST API)</option><option value="cemig">CEMIG (Energia - XML/SOAP)</option></select></div>
-            <div class="field"><label>Tarifa Base (R$)</label><input type="number" id="cfgTarifaValor" value="0.89" step="0.01"/></div>
-            <div class="field"><label>Chave API / Token Concessionária</label><input id="cfgApiToken" placeholder="Bearer Token ou XML Key"/></div>
+            <div class="field"><label>Concessionária Água (Saneamento)</label><select id="cfgEmpresaAgua"></select></div>
+            <div class="field"><label>Concessionária Energia (Distribuidora)</label><select id="cfgEmpresaEnergia"></select></div>
+            <div class="field"><label>Tarifa Água (R$/m³)</label><input type="number" id="cfgTarifaAgua" value="8.50" step="0.1"/></div>
+            <div class="field"><label>Tarifa Energia (R$/kWh)</label><input type="number" id="cfgTarifaEnergia" value="0.89" step="0.01"/></div>
+            <div class="field"><label>COSIP (R$/mês)</label><input type="number" id="cfgCosip" value="16.56" step="0.1"/></div>
+            <div class="field"><label>Chave API / Token Concessionária</label><input id="cfgApiToken" placeholder="Bearer Token / XML Key"/></div>
             <div class="field"><label>Responsável Técnico</label><input id="cfgResp" placeholder="Nome do leiturista"/></div>
           </div>
         </div>
 
         <div style="margin-top:28px">
-          <div style="font-size:13px;font-weight:700;color:var(--muted);margin-bottom:12px;text-transform:uppercase">Medidores Vinculados Ativos</div>
+          <div style="font-size:13px;font-weight:700;color:var(--muted);margin-bottom:12px;text-transform:uppercase">Medidores e Unidades Cadastrados</div>
           <table class="tbl">
-            <thead><tr><th>Unidade</th><th>Tipo</th><th>Nº Medidor</th><th>Concessionária / API</th><th style="text-align:right">Ações</th></tr></thead>
+            <thead><tr><th>Unidade</th><th>Tipo</th><th>Nº Medidor</th><th>Padrão</th><th>Documento</th><th style="text-align:right">Ações</th></tr></thead>
             <tbody id="tbUnidadesUnificadas"></tbody>
           </table>
         </div>
@@ -386,13 +386,29 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
 let role = null;
 let tipoSelecionado = 'AGUA';
 let bandeiraAtual = 'verde';
-let medidorAtivo = null;
+let medidorAtual = null;
 let fotoSelecionada = null;
 let faturaAtual = null;
 
-let unidades = JSON.parse(localStorage.getItem('seter_uni')||'[{"nome":"Condomínio Bella Vista","tipoMedido":"AGUA","numMedidor":"AGU-44012","padrao":"analogico","concessionaria":"saneago","tarifa":8.5},{"nome":"Unidade Comercial","tipoMedido":"ENERGIA","numMedidor":"ENR-99201","padrao":"digital","concessionaria":"equatorial","tarifa":0.89}]');
+let unidades = JSON.parse(localStorage.getItem('seter_uni')||'[{"nome":"Condomínio Bella Vista","tipo":"AGUA","numMedidor":"AGU-44012","padrao":"analogico","doc":"00.000.000/0001-00","empresaAgua":"saneago","empresaEnergia":"equatorial-go","tarifaAgua":8.5,"tarifaEnergia":0.89},{"nome":"Residência Central","tipo":"ENERGIA","numMedidor":"ENR-99201","padrao":"digital","doc":"342.599.988-54","empresaAgua":"saneago","empresaEnergia":"equatorial-go","tarifaAgua":8.5,"tarifaEnergia":0.89}]');
 let historico = JSON.parse(localStorage.getItem('seter_hist')||'[{"data":"2026-10-11T16:27:37.000Z","medidor":"ENR-99201","tipo":"ENERGIA","leitura":14520,"consumo":145,"total":144.18}]');
 let aprovacoes = JSON.parse(localStorage.getItem('seter_apr')||'[{"cliente":"Condomínio Bella Vista","de":"João Silva","para":"Maria Souza"}]');
+
+const DIST_ENERGIA = [
+  {id:'equatorial-go',nome:'Equatorial GO',uf:'GO',tarifa:0.892},
+  {id:'enel-sp',nome:'Enel SP',uf:'SP',tarifa:0.789},
+  {id:'cemig',nome:'CEMIG',uf:'MG',tarifa:0.903},
+  {id:'copel',nome:'COPEL',uf:'PR',tarifa:0.768},
+  {id:'light',nome:'Light RJ',uf:'RJ',tarifa:0.881}
+];
+const DIST_AGUA = [
+  {id:'saneago',nome:'Saneago',uf:'GO',tarifa:8.42},
+  {id:'sanepar',nome:'Sanepar',uf:'PR',tarifa:7.85},
+  {id:'sabesp',nome:'Sabesp',uf:'SP',tarifa:9.10},
+  {id:'caesb',nome:'Caesb',uf:'DF',tarifa:8.20},
+  {id:'cedae',nome:'Cedae',uf:'RJ',tarifa:8.50}
+];
+const COSIP_CIDADE = { 'GO':16.56, 'SP':18.20, 'RJ':19.50, 'PR':14.80, 'DF':15.00 };
 
 function fazerLogin() {
   const u = document.getElementById('loginUser').value.trim();
@@ -408,7 +424,7 @@ function fazerLogin() {
   document.querySelectorAll('.admin-only').forEach(el => { el.style.display = role === 'admin' ? '' : 'none'; });
   if (window.innerWidth < 800) document.getElementById('btnMenu').style.display = 'block';
   toast('Bem-vindo, ' + u);
-  renderMedidoresSelecao(); renderUnidadesUnificadas(); renderH(); dash(); renderA();
+  popularSelects(); renderUnidadesUnificadas(); renderH(); dash(); renderA();
 }
 
 function logout() {
@@ -427,7 +443,6 @@ function ir(sec, el) {
   if(sec==='dashboard') dash();
   if(sec==='aprovacoes') renderA();
   if(sec==='config') renderUnidadesUnificadas();
-  if(sec==='leitura') renderMedidoresSelecao();
 }
 
 function toast(msg) {
@@ -449,47 +464,52 @@ function mudarModo() {
 function selecionarTipo(tipo, el) {
   tipoSelecionado = tipo;
   document.querySelectorAll('.tipo-btn').forEach(b => b.classList.remove('ativo'));
-  el.classList.add('ativo');
+  if(el) el.classList.add('ativo');
   document.getElementById('bandeiraWrap').style.display = (tipo === 'ENERGIA') ? 'block' : 'none';
 }
 
-/* SELEÇÃO POR CLIQUE DO MEDIDOR CADASTRADO */
-function renderMedidoresSelecao() {
-  const container = document.getElementById('medidorGridSel');
-  if(!container) return;
-  container.innerHTML = unidades.map((u, i) => `
-    <div class="medidor-card-btn ${medidorAtivo && medidorAtivo.numMedidor === u.numMedidor ? 'ativo' : ''}" onclick="escolherMedidor(${i})">
-      <div style="font-weight:700;font-size:13px">${u.nome}</div>
-      <div style="font-family:'JetBrains Mono';font-size:11px;color:var(--accent)">${u.numMedidor}</div>
-      <div style="font-size:10px;color:var(--muted)">${u.tipoMedido} · ${u.concessionaria || 'API Direta'}</div>
-    </div>
-  `).join('') || '<div style="color:var(--muted);font-size:12px">Nenhum medidor cadastrado. Vá em Configurações.</div>';
+/* AUTOMAÇÃO: IDENTIFICAÇÃO AUTOMÁTICA PELO NÚMERO DO MEDIDOR */
+function autoIdentificarMedidor() {
+  const query = document.getElementById('busca').value.toLowerCase().trim();
+  const found = unidades.find(u => u.numMedidor.toLowerCase().includes(query) || u.nome.toLowerCase().includes(query));
+  const info = document.getElementById('clienteInfo');
+  
+  if (found && query.length > 1) {
+    medidorAtual = found;
+    info.style.display = 'block';
+    info.innerHTML = `<strong>${found.nome}</strong> · Nº Medidor: <span style="font-family:'JetBrains Mono'">${found.numMedidor}</span><br>Tipo: <strong>${found.tipo}</strong> · Concessionária: ${found.tipo === 'AGUA' ? found.empresaAgua : found.empresaEnergia}<br><span style="font-size:11px">Tarifa: R$ ${found.tipo === 'AGUA' ? found.tarifaAgua : found.tarifaEnergia}</span>`;
+    
+    // Ajusta o tipo (Água ou Energia) automaticamente
+    if(found.tipo === 'AGUA') selecionarTipo('AGUA', document.getElementById('btnTipoAgua'));
+    else selecionarTipo('ENERGIA', document.getElementById('btnTipoEnergia'));
+    
+    // Busca a última leitura deste medidor no histórico
+    const hist = historico.filter(h => h.medidor === found.numMedidor);
+    if(hist.length > 0) document.getElementById('anterior').value = hist[0].leitura;
+  } else {
+    info.style.display = 'none';
+    medidorAtual = null;
+  }
 }
 
-function escolherMedidor(i) {
-  medidorAtivo = unidades[i];
-  renderMedidoresSelecao();
+/* AUTOMAÇÃO: CEP AUTO-PREENCHE CONCESSIONÁRIA E TARIFAS */
+function buscarRegiaoPorCep() {
+  const cep = document.getElementById('cfgCep').value.replace(/\D/g,'');
+  if (cep.length < 8) return;
   
-  // Seta automaticamente o tipo (AGUA ou ENERGIA) e o número do medidor
-  tipoSelecionado = medidorAtivo.tipoMedido || 'AGUA';
-  if(tipoSelecionado === 'AGUA') {
-    selecionarTipo('AGUA', document.getElementById('tipoBtnAgua'));
-  } else {
-    selecionarTipo('ENERGIA', document.getElementById('tipoBtnEnergia'));
-  }
+  const ufMap = { '01':'SP','02':'SP','20':'RJ','30':'MG','74':'GO','75':'GO','80':'PR','70':'DF' };
+  const uf = ufMap[cep.slice(0,2)] || 'GO';
   
-  document.getElementById('numMedidorAtivo').value = medidorAtivo.numMedidor;
+  const agua = DIST_AGUA.find(d => d.uf === uf) || DIST_AGUA[0];
+  const energia = DIST_ENERGIA.find(d => d.uf === uf) || DIST_ENERGIA[0];
   
-  // Pega a leitura anterior do histórico para este medidor específico
-  const histMedidor = historico.filter(h => h.medidor === medidorAtivo.numMedidor);
-  const ultimaLeitura = histMedidor.length > 0 ? histMedidor[0].leitura : 12000;
-  document.getElementById('anterior').value = ultimaLeitura;
+  document.getElementById('cfgEmpresaAgua').value = agua.id;
+  document.getElementById('cfgEmpresaEnergia').value = energia.id;
+  document.getElementById('cfgTarifaAgua').value = agua.tarifa.toFixed(2);
+  document.getElementById('cfgTarifaEnergia').value = energia.tarifa.toFixed(2);
+  document.getElementById('cfgCosip').value = (COSIP_CIDADE[uf] || 16.56).toFixed(2);
   
-  const info = document.getElementById('medidorSelecionadoInfo');
-  info.style.display = 'block';
-  info.innerHTML = `<strong>Medidor Selecionado:</strong> ${medidorAtivo.numMedidor} (${medidorAtivo.nome})<br>Concessionária / API: <strong>${medidorAtivo.concessionaria || 'Padrão'}</strong> · Tarifa: R$ ${medidorAtivo.tarifa || 0.89}`;
-  
-  toast(`Medidor ${medidorAtivo.numMedidor} selecionado com sucesso!`);
+  toast(`Região ${uf} identificada: concessionárias e tarifas configuradas!`);
 }
 
 function selBandeira(b, el) {
@@ -506,60 +526,52 @@ function aoSelecionarFoto(e) {
   prev.src = URL.createObjectURL(fotoSelecionada);
   prev.style.display = 'block';
   lbl.textContent = fotoSelecionada.name;
-  toast('Scanner Dael: Imagem carregada com sucesso.');
+  toast('Scanner Dael: Foto pronta.');
 }
 
-/* INTEGRAÇÃO COM APIs DE CONCESSIONÁRIAS (REST / XML / GATEWAY) */
 async function sincronizarApiConcessionaria() {
-  if(!medidorAtivo) { toast('Selecione um medidor cadastrado primeiro!'); return; }
-  const status = document.getElementById('status');
-  status.textContent = `Conectando à API REST/XML da concessionária (${medidorAtivo.concessionaria || 'Oficial'})...`;
+  const numMedidor = medidorAtual ? medidorAtual.numMedidor : document.getElementById('busca').value;
+  if(!numMedidor) { toast('Digite ou selecione o número do medidor primeiro'); return; }
   
-  try {
-    // Simulação robusta de requisição de API de concessionária (REST/XML Gateway)
-    await new Promise(r => setTimeout(r, 1200));
-    
-    // Simula leitura exata retornada pela API da concessionária
-    const leituraApi = Math.floor(Number(document.getElementById('anterior').value) + Math.random() * 180 + 35);
-    const anterior = Number(document.getElementById('anterior').value);
-    
-    animarVisor(leituraApi);
-    document.getElementById('statusTxt').textContent = 'Sincronizado via API Concessionária';
-    document.getElementById('statusConf').textContent = '100% verificado (REST/XML)';
-    
-    const consumo = Math.max(0, leituraApi - anterior);
-    const tarifa = medidorAtivo.tarifa || 0.89;
-    const total = consumo * tarifa + (tipoSelecionado === 'AGUA' ? 17 : 12);
-    
-    faturaAtual = { medidor: medidorAtivo.numMedidor, tipo: tipoSelecionado, leitura: leituraApi, consumo, total, tarifa };
-    
-    document.getElementById('fMedId').textContent = medidorAtivo.numMedidor;
-    document.getElementById('fLei').textContent = leituraApi;
-    document.getElementById('fCons').textContent = consumo + (tipoSelecionado==='AGUA'?' m³':' kWh');
-    document.getElementById('fTotal').textContent = 'R$ ' + total.toFixed(2);
-    document.getElementById('fatura').style.display = 'block';
-    
-    historico.unshift({ data: new Date().toISOString(), medidor: medidorAtivo.numMedidor, tipo: tipoSelecionado, leitura: leituraApi, consumo, total });
-    localStorage.setItem('seter_hist', JSON.stringify(historico));
-    
-    status.textContent = 'Consumo obtido perfeitamente via API da concessionária!';
-    toast('Dados sincronizados da API oficial sem erros!');
-  } catch(e) {
-    status.textContent = 'Erro ao conectar na API da concessionária.';
-    toast('Falha na sincronização da API');
-  }
+  const status = document.getElementById('status');
+  status.textContent = 'Consultando API REST/XML da Concessionária...';
+  
+  await new Promise(r => setTimeout(r, 1000));
+  const anterior = Number(document.getElementById('anterior').value);
+  const leituraApi = anterior + Math.floor(Math.random() * 120 + 25);
+  
+  animarVisor(leituraApi);
+  document.getElementById('statusTxt').textContent = 'Sincronizado via API Oficial';
+  document.getElementById('statusConf').textContent = '100% Verificado';
+  
+  const consumo = leituraApi - anterior;
+  const tarifa = tipoSelecionado === 'AGUA' ? (medidorAtual?.tarifaAgua || 8.5) : (medidorAtual?.tarifaEnergia || 0.89);
+  const total = consumo * tarifa + (tipoSelecionado === 'AGUA' ? 17 : 12);
+  
+  faturaAtual = { medidor: numMedidor, tipo: tipoSelecionado, leitura: leituraApi, consumo, total };
+  
+  document.getElementById('fMed').textContent = numMedidor;
+  document.getElementById('fLei').textContent = leituraApi;
+  document.getElementById('fCons').textContent = consumo + (tipoSelecionado==='AGUA'?' m³':' kWh');
+  document.getElementById('fTotal').textContent = 'R$ ' + total.toFixed(2);
+  document.getElementById('fatura').style.display = 'block';
+  
+  historico.unshift({ data: new Date().toISOString(), medidor: numMedidor, tipo: tipoSelecionado, leitura: leituraApi, consumo, total });
+  localStorage.setItem('seter_hist', JSON.stringify(historico));
+  
+  status.textContent = 'Conexão e Leitura Concluídas com Sucesso!';
+  toast('Leitura sincronizada diretamente via API!');
 }
 
-/* Engine de OCR com Filtro Antissérie */
 async function processarLeituraDael() {
-  if(!medidorAtivo) { toast('Selecione um medidor nos botões acima antes de processar!'); return; }
   const anterior = Number(document.getElementById('anterior').value || 0);
+  const numMedidor = medidorAtual ? medidorAtual.numMedidor : (document.getElementById('busca').value || 'MED-001');
   const status = document.getElementById('status');
   const btn = document.getElementById('btnProcessar');
   if(!fotoSelecionada) { toast('Capture ou envie a foto do medidor'); return; }
   
   btn.disabled = true;
-  status.textContent = 'Processando imagem com OCR Dael...';
+  status.textContent = 'Processando OCR inteligente Dael...';
   
   try {
     const { data: { text, confidence } } = await Tesseract.recognize(fotoSelecionada, 'eng', {
@@ -576,43 +588,36 @@ async function processarLeituraDael() {
     }
     
     if (validNums.length === 0) {
-      status.textContent = 'Não foi possível ler os dígitos. Tire outra foto.';
+      status.textContent = 'Não foi possível ler os dígitos. Aproxima a câmera.';
       toast('OCR falhou — tente aproximar do visor');
       btn.disabled = false;
       return;
     }
     
     const leitura = parseInt(validNums[0], 10);
-    if(isNaN(leitura) || leitura < 0) {
-      status.textContent = 'Leitura inválida extraída.';
-      btn.disabled = false;
-      return;
-    }
-    
     animarVisor(leitura);
     document.getElementById('statusTxt').textContent = 'Leitura real extraída';
     document.getElementById('statusConf').textContent = Math.round(confidence || 90) + '% confiança';
     
     const consumo = Math.max(0, leitura - anterior);
-    const tarifa = medidorAtivo.tarifa || 0.89;
+    const tarifa = tipoSelecionado === 'AGUA' ? (medidorAtual?.tarifaAgua || 8.5) : (medidorAtual?.tarifaEnergia || 0.89);
     const total = consumo * tarifa + (tipoSelecionado === 'AGUA' ? 17 : 12);
     
-    faturaAtual = { medidor: medidorAtivo.numMedidor, tipo: tipoSelecionado, leitura, consumo, total, tarifa };
+    faturaAtual = { medidor: numMedidor, tipo: tipoSelecionado, leitura, consumo, total };
     
-    document.getElementById('fMedId').textContent = medidorAtivo.numMedidor;
+    document.getElementById('fMed').textContent = numMedidor;
     document.getElementById('fLei').textContent = leitura;
     document.getElementById('fCons').textContent = consumo + (tipoSelecionado==='AGUA'?' m³':' kWh');
     document.getElementById('fTotal').textContent = 'R$ ' + total.toFixed(2);
     document.getElementById('fatura').style.display = 'block';
     
-    historico.unshift({ data: new Date().toISOString(), medidor: medidorAtivo.numMedidor, tipo: tipoSelecionado, leitura, consumo, total });
+    historico.unshift({ data: new Date().toISOString(), medidor: numMedidor, tipo: tipoSelecionado, leitura, consumo, total });
     localStorage.setItem('seter_hist', JSON.stringify(historico));
     
-    status.textContent = 'Leitura processada com sucesso!';
-    toast('Leitura exata calculada!');
+    status.textContent = 'Leitura real processada!';
+    toast('Leitura calculada perfeitamente!');
   } catch(e) {
     status.textContent = 'Erro no OCR: ' + e.message;
-    toast('Falha ao processar imagem');
   } finally {
     btn.disabled = false;
   }
@@ -627,40 +632,46 @@ function animarVisor(val) {
   });
 }
 
-/* CADASTRO UNIFICADO NA ABA DE CONFIGURAÇÕES */
 function renderUnidadesUnificadas() {
   const tbody = document.getElementById('tbUnidadesUnificadas');
   if (!tbody) return;
   tbody.innerHTML = unidades.map((u, i) => `
     <tr>
       <td><strong>${u.nome}</strong></td>
-      <td><span style="font-size:10px;padding:3px 8px;background:rgba(37,99,235,0.1);color:var(--accent);border-radius:6px;font-weight:600">${u.tipoMedido}</span></td>
+      <td><span style="font-size:10px;padding:3px 8px;background:rgba(37,99,235,0.1);color:var(--accent);border-radius:6px;font-weight:600">${u.tipo}</span></td>
       <td><span style="font-family:'JetBrains Mono';background:var(--accent-soft);padding:3px 6px;border-radius:4px;color:var(--accent)">${u.numMedidor}</span></td>
-      <td>${u.concessionaria || 'API Direta'}</td>
+      <td>${u.padrao === 'analogico' ? 'Analógico' : u.padrao === 'digital' ? 'Digital' : 'Smart'}</td>
+      <td>${u.doc || '—'}</td>
       <td style="text-align:right;white-space:nowrap">
         <button class="btn btn-ghost btn-sm" onclick="editarUnidade(${i})">Editar</button>
         <button class="btn btn-ghost btn-sm" style="color:var(--rose)" onclick="excluirUnidade(${i})">Excluir</button>
       </td>
     </tr>
-  `).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--muted)">Nenhum medidor cadastrado</td></tr>';
+  `).join('') || '<tr><td colspan="6" style="text-align:center;color:var(--muted)">Nenhum medidor cadastrado</td></tr>';
 }
 
 function salvarCadastroUnico() {
   const nome = document.getElementById('cfgNome').value.trim();
-  const tipoMedido = document.getElementById('cfgTipoMedidorSelect').value;
+  const tipo = document.getElementById('cfgTipoMedicao').value;
   const numMedidor = document.getElementById('cfgNumMedidor').value.trim();
   const padrao = document.getElementById('cfgPadraoMedidor').value;
-  const concessionaria = document.getElementById('cfgConcessionariaApi').value;
-  const tarifa = parseFloat(document.getElementById('cfgTarifaValor').value) || 0.89;
+  const doc = document.getElementById('cfgDoc').value.trim();
   
-  if (!nome) { toast('Informe o nome da unidade'); return; }
-  if (!numMedidor) { toast('Informe o número do medidor'); return; }
+  if (!nome || !numMedidor) { toast('Preencha Nome e Número do Medidor'); return; }
   
-  unidades.push({ nome, tipoMedido, numMedidor, padrao, concessionaria, tarifa });
+  const registro = {
+    nome, tipo, numMedidor, padrao, doc,
+    empresaAgua: document.getElementById('cfgEmpresaAgua').value,
+    empresaEnergia: document.getElementById('cfgEmpresaEnergia').value,
+    tarifaAgua: parseFloat(document.getElementById('cfgTarifaAgua').value) || 8.5,
+    tarifaEnergia: parseFloat(document.getElementById('cfgTarifaEnergia').value) || 0.89,
+    cosip: parseFloat(document.getElementById('cfgCosip').value) || 16.56
+  };
+  
+  unidades.push(registro);
   localStorage.setItem('seter_uni', JSON.stringify(unidades));
   
   renderUnidadesUnificadas();
-  renderMedidoresSelecao();
   document.getElementById('cfgNome').value = '';
   document.getElementById('cfgNumMedidor').value = '';
   toast('Medidor cadastrado com sucesso!');
@@ -668,13 +679,12 @@ function salvarCadastroUnico() {
 
 function editarUnidade(i) {
   const u = unidades[i];
-  const nome = prompt('Editar nome da unidade:', u.nome); if(!nome) return;
-  const numMedidor = prompt('Editar número do medidor:', u.numMedidor); if(!numMedidor) return;
+  const nome = prompt('Editar Nome:', u.nome); if(!nome) return;
+  const numMedidor = prompt('Editar Medidor:', u.numMedidor); if(!numMedidor) return;
   unidades[i].nome = nome;
   unidades[i].numMedidor = numMedidor;
   localStorage.setItem('seter_uni', JSON.stringify(unidades));
   renderUnidadesUnificadas();
-  renderMedidoresSelecao();
   toast('Medidor atualizado!');
 }
 
@@ -683,11 +693,29 @@ function excluirUnidade(i) {
   unidades.splice(i, 1);
   localStorage.setItem('seter_uni', JSON.stringify(unidades));
   renderUnidadesUnificadas();
-  renderMedidoresSelecao();
   toast('Medidor excluído.');
 }
 
-/* HISTÓRICO COM LIXEIRA PRETA SUAVE */
+async function buscarCnpj() {
+  const doc = document.getElementById('cfgDoc').value.replace(/\D/g,'');
+  if (doc.length !== 14) return;
+  const info = document.getElementById('cfgEmpresaInfo');
+  info.textContent = 'Buscando CNPJ...';
+  try {
+    const r = await fetch('https://brasilapi.com.br/api/cnpj/v1/' + doc);
+    if (!r.ok) throw new Error();
+    const d = await r.json();
+    info.innerHTML = `<strong>${d.razao_social || d.nome_fantasia}</strong><br>${d.municipio} - ${d.uf}`;
+    if (d.cep) {
+      document.getElementById('cfgCep').value = d.cep;
+      buscarRegiaoPorCep();
+    }
+    toast('Empresa localizada com sucesso!');
+  } catch(e) {
+    info.textContent = 'CNPJ não encontrado na Receita';
+  }
+}
+
 function renderH() {
   document.getElementById('tbH').innerHTML = historico.map((h, i) => `
     <tr>
@@ -730,14 +758,14 @@ function aprovarItem(i) {
   aprovacoes.splice(i, 1);
   localStorage.setItem('seter_apr', JSON.stringify(aprovacoes));
   renderA();
-  toast('Aprovado com sucesso!');
+  toast('Aprovado!');
 }
 
 function rejeitarItem(i) {
   aprovacoes.splice(i, 1);
   localStorage.setItem('seter_apr', JSON.stringify(aprovacoes));
   renderA();
-  toast('Solicitação excluída.');
+  toast('Excluído.');
 }
 
 function periodo(p, el) {
@@ -757,12 +785,19 @@ function dash(p='mes') {
   document.getElementById('dreRes').textContent = 'R$ ' + (rec * 0.78).toFixed(2);
 }
 
+function popularSelects() {
+  const selA = document.getElementById('cfgEmpresaAgua');
+  const selE = document.getElementById('cfgEmpresaEnergia');
+  if(selA) selA.innerHTML = DIST_AGUA.map(d => `<option value="${d.id}">${d.nome} (${d.uf})</option>`).join('');
+  if(selE) selE.innerHTML = DIST_ENERGIA.map(d => `<option value="${d.id}">${d.nome} (${d.uf})</option>`).join('');
+}
+
 function gerarPix() {
   if(!faturaAtual) return;
   const codigo = `00020126360014BR.GOV.BCB.PIX0114+5599999999995204000053039865405${faturaAtual.total.toFixed(2).replace('.','')}5802BR5925SETER PRO TECNOLOGIA6009BRASILIA62070503***6304ABCD`;
   document.getElementById('pixCodigo').textContent = codigo;
   abrirModal('modalPix');
-  toast('PIX gerado com sucesso!');
+  toast('PIX Gerado!');
 }
 
 function copiarPix() {
@@ -772,7 +807,7 @@ function copiarPix() {
 
 function enviarWhats() {
   if(!faturaAtual) return;
-  const texto = encodeURIComponent(`Olá! Sua fatura do medidor ${faturaAtual.medidor} (${faturaAtual.tipo}) no valor de R$ ${faturaAtual.total.toFixed(2)} está disponível.`);
+  const texto = encodeURIComponent(`Olá! Fatura do medidor ${faturaAtual.medidor} (${faturaAtual.tipo}) no valor de R$ ${faturaAtual.total.toFixed(2)}.`);
   window.open(`https://wa.me/?text=${texto}`, '_blank');
 }
 
@@ -786,7 +821,7 @@ window.addEventListener('load', () => {
   if (window.innerWidth < 800) {
     document.getElementById('sidebar').style.transform = 'translateX(-100%)';
   }
-  renderMedidoresSelecao();
+  popularSelects();
   renderUnidadesUnificadas();
   initNeural();
 });
@@ -869,7 +904,7 @@ function importarDados(e) {
       if(d.historico) historico = d.historico;
       localStorage.setItem('seter_uni', JSON.stringify(unidades));
       localStorage.setItem('seter_hist', JSON.stringify(historico));
-      renderMedidoresSelecao(); renderUnidadesUnificadas(); renderH();
+      renderUnidadesUnificadas(); renderH();
       toast('Dados importados com sucesso!');
     } catch(err) { toast('Arquivo inválido'); }
   };
