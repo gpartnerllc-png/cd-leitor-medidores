@@ -40,12 +40,13 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
 .nav-item:hover, .nav-item.active { background: var(--accent-soft); color: var(--accent); }
 .main { margin-left: var(--sidebar); flex: 1; padding: 32px; max-width: 1240px; }
 @media (max-width: 800px) {
-  .main { margin-left: 0 !important; padding: 60px 12px 24px; width: 100%; max-width: 100%; }
+  .main { margin-left: 0 !important; padding: 56px 12px 24px; width: 100%; max-width: 100%; }
   .sidebar { transform: translateX(-100%); }
   .grid2 { grid-template-columns: 1fr; }
   .stats { grid-template-columns: 1fr 1fr; }
   .card { padding: 16px; }
-  .header h1 { font-size: 20px; }
+  .header { margin-top: 8px; }
+  .header h1 { font-size: 20px; margin-left: 48px; }
 }
 .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; }
 .header h1 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 24px; font-weight: 700; letter-spacing: -0.02em; }
@@ -159,7 +160,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
 .bandeira-item.sel { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
 </style>
 </head>
-<canvas id="neuralCanvas" style="position:fixed;inset:0;z-index:0;pointer-events:none"></canvas>
+<canvas id="neuralCanvas" style="position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.6"></canvas>
 <button id="btnMenu" class="btn btn-prim btn-sm" style="position:fixed;top:12px;left:12px;z-index:9999;display:none" onclick="toggleSidebar()">☰</button>
 
 <!-- LOGIN -->
@@ -170,7 +171,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
       <div style="font-size:13px;color:var(--muted);margin-top:4px">Acesso autenticado ao sistema</div>
     </div>
     <div class="field"><label>Usuário</label><input id="loginUser" placeholder="admin ou user"/></div>
-    <div class="field"><label>Senha</label><input id="loginPass" type="password" placeholder="••••••"/></div>
+    <div class="field"><label>Senha</label><input id="loginPass" type="password" placeholder="••••••" autocomplete="current-password"/></div>
     <button class="btn btn-prim btn-full" onclick="fazerLogin()" style="margin-top:8px">Entrar na Plataforma</button>
     <div style="font-size:11.5px;color:var(--muted);margin-top:16px;text-align:center">admin / admin123 · user / user123</div>
   </div>
@@ -841,29 +842,42 @@ function initNeural() {
   const c = document.getElementById('neuralCanvas');
   if (!c) return;
   const ctx = c.getContext('2d');
-  let w, h, nodes = [];
+  let w, h, nodes = [], drops = [];
   function resize() { w = c.width = innerWidth; h = c.height = innerHeight; }
   function spawn() {
-    nodes = Array.from({length: 35}, () => ({
+    nodes = Array.from({length: 28}, () => ({
       x: Math.random()*w, y: Math.random()*h,
-      vx: (Math.random()-0.5)*0.5, vy: (Math.random()-0.5)*0.5,
-      r: Math.random()*2+1
+      vx: (Math.random()-0.5)*0.4, vy: (Math.random()-0.5)*0.4,
+      r: Math.random()*2+1, phase: Math.random()*Math.PI*2
+    }));
+    drops = Array.from({length: 12}, () => ({
+      x: Math.random()*w, y: Math.random()*h,
+      r: Math.random()*18+8, a: Math.random()*0.3+0.1, s: Math.random()*0.3+0.1
     }));
   }
   function draw() {
     ctx.clearRect(0,0,w,h);
+    drops.forEach(d => {
+      d.a += d.s * 0.01;
+      ctx.beginPath();
+      ctx.arc(d.x, d.y, d.r, 0, Math.PI*2);
+      ctx.fillStyle = `rgba(37,99,235,${0.08 + Math.sin(d.a)*0.06})`;
+      ctx.fill();
+    });
     nodes.forEach(n => {
       n.x += n.vx; n.y += n.vy;
+      n.phase += 0.02;
       if (n.x<0||n.x>w) n.vx*=-1;
       if (n.y<0||n.y>h) n.vy*=-1;
-      ctx.beginPath(); ctx.arc(n.x,n.y,n.r,0,Math.PI*2);
-      ctx.fillStyle = 'rgba(37,99,235,0.5)'; ctx.fill();
+      ctx.beginPath(); ctx.arc(n.x, n.y, n.r + Math.sin(n.phase)*0.5, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(37,99,235,0.65)'; ctx.fill();
     });
     for (let i=0;i<nodes.length;i++) for (let j=i+1;j<nodes.length;j++) {
       const d = Math.hypot(nodes[i].x-nodes[j].x, nodes[i].y-nodes[j].y);
-      if (d < 120) {
+      if (d < 140) {
         ctx.beginPath(); ctx.moveTo(nodes[i].x, nodes[i].y); ctx.lineTo(nodes[j].x, nodes[j].y);
-        ctx.strokeStyle = `rgba(16,185,129,${0.15*(1-d/120)})`; ctx.lineWidth = 1; ctx.stroke();
+        ctx.strokeStyle = `rgba(249,115,22,${0.35*(1-d/140)})`;
+        ctx.lineWidth = 1.2; ctx.stroke();
       }
     }
     requestAnimationFrame(draw);
