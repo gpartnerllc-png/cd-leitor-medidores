@@ -38,7 +38,13 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
 .logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--mint); box-shadow: 0 0 10px var(--mint); }
 .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 10px; cursor: pointer; color: var(--muted); font-size: 13.5px; font-weight: 600; margin-bottom: 4px; transition: all .15s; }
 .nav-item:hover, .nav-item.active { background: var(--accent-soft); color: var(--accent); }
-.main { margin-left: var(--sidebar); flex: 1; padding: 32px; max-width: 1240px; }
+.main { margin-left: var(--sidebar); flex: 1; padding: 24px; max-width: 1240px; }
+@media (max-width: 800px) {
+  .main { margin-left: 0; padding: 70px 16px 24px; }
+  .sidebar { transform: translateX(-100%); }
+  .grid2 { grid-template-columns: 1fr; }
+  .stats { grid-template-columns: 1fr 1fr; }
+}
 .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; }
 .header h1 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 24px; font-weight: 700; letter-spacing: -0.02em; }
 .badge { font-size: 11px; padding: 5px 12px; border-radius: 20px; background: var(--accent-soft); color: var(--accent); font-weight: 600; font-family: 'JetBrains Mono', monospace; }
@@ -809,8 +815,7 @@ window.addEventListener('load', () => {
     document.getElementById('sidebar').style.transform = 'translateX(-100%)';
     document.getElementById('btnMenu').style.display = 'block';
   }
-  const tipo = document.querySelector('.tipo-btn.ativo');
-  if (tipo && tipo.textContent.includes('Energia')) popularSelectEnergia();
+  popularSelectAgua();
 });
 function salvarConfig() {
   const cfg = {
