@@ -453,6 +453,7 @@ function verificarAnomalia(consumo, tipo) {
   if (consumo === 0) return 'Consumo zerado — verificar';
   return null;
 }
+function selecionarTipo(tipo, el) {
   tipoSelecionado = tipo;
   document.querySelectorAll('.tipo-btn').forEach(b => b.classList.remove('ativo'));
   el.classList.add('ativo');
