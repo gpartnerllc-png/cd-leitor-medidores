@@ -1123,4 +1123,66 @@ async function asaasCreditBureauReport() {
   await asaasRequest('/creditBureauReport', 'POST');
 }
 
-async function asaasPaymentDunnings
+async function asaasPaymentDunnings() {
+  await asaasRequest('/paymentDunnings', 'POST', { type: 'CREDIT_BUREAU' });
+}
+
+async function asaasAuthorizeInvoice() {
+  const invoiceId = prompt('Informe o ID da Fatura / Nota Fiscal para autorizar:');
+  if(!invoiceId) return;
+  await asaasRequest(`/invoices/${invoiceId}/authorize`, 'POST');
+}
+
+async function asaasStaticPixQrCode() {
+  await asaasRequest('/pix/qrCodes/static', 'POST');
+}
+
+async function asaasRecurringPixTransactions() {
+  await asaasRequest('/pix/transactions/recurrings', 'GET');
+}
+
+async function asaasAutomaticPixAuthorizations() {
+  await asaasRequest('/pix/automatic/authorizations', 'POST', { frequency: 'WEEKLY', immediateQrCode: {} });
+}
+
+async function asaasConfigureWebhooks() {
+  await asaasRequest('/webhooks', 'POST', { interrupted: true, enabled: true, events: [], sendType: 'NON_SEQUENTIALLY' });
+}
+
+async function asaasCreateAddressKey() {
+  await asaasRequest('/pix/addressKeys', 'POST', { type: 'EVP' });
+}
+
+async function asaasGetFinancialTransactions() {
+  await asaasRequest('/financialTransactions', 'GET');
+}
+
+function abrirModal(id) { document.getElementById(id).classList.add('open'); }
+function fecharModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function exportarJSON() {
+  const blob = new Blob([JSON.stringify({unidades, historico}, null, 2)], {type: 'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'seter-pro-ultimate-backup.json'; a.click();
+  toast('Backup exportado com sucesso!');
+}
+
+function importarDados(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const d = JSON.parse(ev.target.result);
+      if(d.unidades) unidades = d.unidades;
+      if(d.historico) historico = d.historico;
+      localStorage.setItem('seter_uni', JSON.stringify(unidades));
+      localStorage.setItem('seter_hist', JSON.stringify(historico));
+      renderUnidadesUnificadas(); renderH();
+      toast('Dados importados com sucesso!');
+    } catch(err) { toast('Arquivo inválido'); }
+  };
+  reader.readAsText(file);
+}
+</script>
+</body>
+</html>
