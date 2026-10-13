@@ -1,7 +1,7 @@
 /**
  * worker.js
- * Worker puro (sem Hono) — evita o erro de autoconfig do Cloudflare Builds.
- * Coloque na raiz do repositório.
+ * Worker puro (sem Hono) — Seter Pro · Dael Engine + Asaas Proxy Suite
+ * Salve este código na raiz do seu repositório Cloudflare Worker.
  */
 
 export default {
@@ -9,11 +9,11 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname;
 
-    // CORS
+    // CORS Headers
     const corsHeaders = {
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS, PUT, DELETE',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, access_token',
     };
 
     if (request.method === 'OPTIONS') {
@@ -24,13 +24,18 @@ export default {
     if (path === '/' && request.method === 'GET') {
       return json({
         status: 'ok',
-        servico: 'Seter Pro · Leitura de Medidores',
-        versao: '2.0',
-        endpoints: ['/api/login', '/api/ler-medidor', '/webhook/whatsapp'],
+        servico: 'Seter Pro · Leitura de Medidores & Asaas Gateway Suite',
+        versao: '2.1',
+        endpoints: [
+          '/api/login', 
+          '/api/ler-medidor', 
+          '/webhook/whatsapp',
+          '/api/asaas/*' // Proxy seguro para toda a suíte Asaas Sandbox
+        ],
       }, corsHeaders);
     }
 
-    // Login
+    // Login (JWT)
     if (path === '/api/login' && request.method === 'POST') {
       const { usuarioId } = await request.json().catch(() => ({}));
       if (!usuarioId) return json({ erro: 'usuarioId obrigatório' }, corsHeaders, 400);
@@ -57,7 +62,7 @@ export default {
       return json({ token: `${data}.${signature}` }, corsHeaders);
     }
 
-    // Leitura
+    // Leitura de Medidores (OCR / Manual)
     if (path === '/api/ler-medidor' && request.method === 'POST') {
       const form = await request.formData().catch(() => null);
       if (!form) return json({ erro: 'FormData inválido' }, corsHeaders, 400);
@@ -69,7 +74,7 @@ export default {
         return json({ erro: 'tipo inválido' }, corsHeaders, 400);
       }
 
-      const leitura = 1248; // placeholder
+      const leitura = 1248; // placeholder IA
       const consumo = leitura - leituraAnterior;
 
       return json({
@@ -82,7 +87,7 @@ export default {
       }, corsHeaders);
     }
 
-    // Webhook WhatsApp
+    // Webhook WhatsApp (Verificação e Eventos)
     if (path === '/webhook/whatsapp' && request.method === 'GET') {
       const mode = url.searchParams.get('hub.mode');
       const token = url.searchParams.get('hub.verify_token');
@@ -95,6 +100,47 @@ export default {
 
     if (path === '/webhook/whatsapp' && request.method === 'POST') {
       return new Response('OK', { headers: corsHeaders });
+    }
+
+    // =========================================================================
+    // PROXY SEGURO PARA A API DO ASAAS SANDBOX
+    // Qualquer rota chamada em /api/asaas/... será repassada com segurança
+    // para https://api-sandbox.asaas.com/v3/... utilizando a chave do Cloudflare Secret.
+    // =========================================================================
+    if (path.startsWith('/api/asaas/')) {
+      const asaasPath = path.replace('/api/asaas', '');
+      const asaasUrl = `https://api-sandbox.asaas.com/v3${asaasPath}${url.search}`;
+
+      const asaasHeaders = {
+        'accept': 'application/json',
+        'content-type': 'application/json',
+        'access_token': env.ASAAS_API_KEY || '',
+        'User-Agent': 'SeterProDaelEngine/1.0.0'
+      };
+
+      const init = {
+        method: request.method,
+        headers: asaasHeaders,
+      };
+
+      if (request.method !== 'GET' && request.method !== 'HEAD') {
+        init.body = await request.text();
+      }
+
+      try {
+        const asaasResponse = await fetch(asaasUrl, init);
+        const responseBody = await asaasResponse.text();
+
+        return new Response(responseBody, {
+          status: asaasResponse.status,
+          headers: {
+            'Content-Type': 'application/json',
+            ...corsHeaders
+          }
+        });
+      } catch (err) {
+        return json({ erro: 'Falha na comunicação com o Asaas Sandbox', detalhes: err.message }, corsHeaders, 500);
+      }
     }
 
     return new Response('Not Found', { status: 404, headers: corsHeaders });
