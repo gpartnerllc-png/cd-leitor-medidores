@@ -25,13 +25,14 @@ export default {
       return json({
         status: 'ok',
         servico: 'Seter Pro · Leitura de Medidores & Asaas Gateway Suite',
-        versao: '2.2',
+        versao: '2.5',
         endpoints: [
           '/api/login', 
           '/api/ler-medidor', 
           '/webhook/whatsapp',
           '/api/unidades',
           '/api/historico',
+          '/api/configuracoes',
           '/api/asaas/*' // Proxy seguro para toda a suíte Asaas Sandbox
         ],
       }, corsHeaders);
@@ -193,18 +194,56 @@ export default {
     }
 
     // =========================================================================
+    // CLOUDFLARE D1 DATABASE: CONFIGURAÇÕES GLOBAIS (Banco Inter, Asaas, WhatsApp)
+    // =========================================================================
+    if (path === '/api/configuracoes' && request.method === 'GET') {
+      try {
+        if (!env.DB) return json({ erro: 'Banco D1 não associado' }, corsHeaders, 500);
+        const { results } = await env.DB.prepare("SELECT * FROM configuracoes").all();
+        const configMap = {};
+        results.forEach(r => configMap[r.chave] = r.valor);
+        return json(configMap, corsHeaders);
+      } catch (e) {
+        return json({ erro: e.message }, corsHeaders, 500);
+      }
+    }
+
+    if (path === '/api/configuracoes' && request.method === 'POST') {
+      try {
+        if (!env.DB) return json({ erro: 'Banco D1 não associado' }, corsHeaders, 500);
+        const d = await request.json();
+        for (const [chave, valor] of Object.entries(d)) {
+          await env.DB.prepare(`
+            INSERT INTO configuracoes (chave, valor) VALUES (?, ?)
+            ON CONFLICT(chave) DO UPDATE SET valor = ?
+          `).bind(chave, valor, valor).run();
+        }
+        return json({ sucesso: true }, corsHeaders);
+      } catch (e) {
+        return json({ erro: e.message }, corsHeaders, 500);
+      }
+    }
+
+    // =========================================================================
     // PROXY SEGURO PARA A API DO ASAAS SANDBOX
-    // Qualquer rota chamada em /api/asaas/... será repassada com segurança
-    // para https://api-sandbox.asaas.com/v3/... utilizando a chave do Cloudflare Secret.
     // =========================================================================
     if (path.startsWith('/api/asaas/')) {
       const asaasPath = path.replace('/api/asaas', '');
       const asaasUrl = `https://api-sandbox.asaas.com/v3${asaasPath}${url.search}`;
 
+      // Tenta buscar a API Key gravada no banco D1 se existir, senão usa o Secret do Worker
+      let apiKey = env.ASAAS_API_KEY || '';
+      try {
+        if (env.DB) {
+          const cfg = await env.DB.prepare("SELECT valor FROM configuracoes WHERE chave = 'asaas_api_key'").first();
+          if (cfg && cfg.valor) apiKey = cfg.valor;
+        }
+      } catch(err) {}
+
       const asaasHeaders = {
         'accept': 'application/json',
         'content-type': 'application/json',
-        'access_token': env.ASAAS_API_KEY || '',
+        'access_token': apiKey,
         'User-Agent': 'SeterProDaelEngine/1.0.0'
       };
 
