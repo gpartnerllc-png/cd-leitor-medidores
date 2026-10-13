@@ -190,7 +190,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
     <section class="section active" id="sec-leitura">
       <div class="grid2">
         <div class="card">
-          <div class="card-title">Scanner Dael (Ultra-Rápido & Pré-Carregado)</div>
+          <div class="card-title">Scanner Dael (Tratamento Óptico Avançado)[cite: 33]</div>
           
           <div class="field">
             <label>Buscar UC / Nome / Nº do Medidor</label>
@@ -219,7 +219,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
           <div class="field">
             <label>Modo de Captura</label>
             <select id="modoCaptura" onchange="mudarModo()">
-              <option value="foto">Foto do Visor (Engine IA Instantânea)</option>
+              <option value="foto">Foto do Visor (Engine IA + Binarização)</option>
               <option value="manual">Digitação Direta da Leitura Atual</option>
             </select>
           </div>
@@ -233,12 +233,12 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
             <input type="file" id="foto" accept="image/*" capture="environment" onchange="aoSelecionarFoto(event)"/>
             <div style="font-size:30px;color:var(--accent);margin-bottom:8px">📷</div>
             <div class="dz-label" id="dzLabel">Abrir Câmera do Smartphone / Enviar Foto do Visor</div>
-            <div style="color:var(--muted);font-size:11.5px;margin-top:2px">IA Pronta em Milissegundos</div>
+            <div style="color:var(--muted);font-size:11.5px;margin-top:2px">Com pré-processamento óptico em background[cite: 33]</div>
             <img id="dzPreview" class="dz-preview"/>
           </label>
 
           <button class="btn btn-prim btn-full" onclick="processarLeituraRealDael()" id="btnProcessar">Processar Leitura e Calcular Fatura Oficial</button>
-          <div id="status" style="font-size:12px;color:var(--muted);margin-top:12px;text-align:center;font-weight:500">Sistema IA 100% pronto em background</div>
+          <div id="status" style="font-size:12px;color:var(--muted);margin-top:12px;text-align:center;font-weight:500">Sistema IA 100% pronto em background[cite: 33]</div>
         </div>
 
         <div class="card">
@@ -425,7 +425,7 @@ const DIST_AGUA = [
 const COSIP_CIDADE = { 'DF':15.00, 'GO':16.56, 'SP':18.20, 'RJ':19.50, 'PR':14.80, 'MG':16.00, 'BA':15.50, 'SC':14.00 };
 const ADICIONAL_BANDEIRA = { verde: 0.0, amarela: 0.02, verm1: 0.04, verm2: 0.07 };
 
-// PRÉ-CARREGAMENTO DA IA EM BACKGROUND
+// PRÉ-CARREGAMENTO DA IA EM BACKGROUND[cite: 33]
 async function initBackgroundWorker() {
   try {
     tesseractWorker = await Tesseract.createWorker('eng');
@@ -435,10 +435,38 @@ async function initBackgroundWorker() {
     });
     isWorkerReady = true;
     const st = document.getElementById('status');
-    if(st) st.textContent = 'IA Dael 100% Pronta para Leitura Instantânea';
+    if(st) st.textContent = 'IA Dael 100% Pronta para Leitura Instantânea[cite: 33]';
   } catch(e) {
     console.error('Erro ao iniciar worker background', e);
   }
+}
+
+// PRÉ-PROCESSAMENTO ÓPTICO (CONVERSÃO ESCALA DE CINZA E BINARIZAÇÃO CANVAS)
+async function preprocessarImagemParaOCR(file) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.drawImage(img, 0, 0);
+
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const data = imageData.data;
+
+      for (let i = 0; i < data.length; i += 4) {
+        const avg = (data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114);
+        const val = avg < 120 ? 0 : 255; // Threshold binarizado para isolar roletas
+        data[i] = val;
+        data[i + 1] = val;
+        data[i + 2] = val;
+      }
+      ctx.putImageData(imageData, 0, 0);
+      resolve(canvas.toDataURL('image/png'));
+    };
+    img.src = URL.createObjectURL(file);
+  });
 }
 
 function fazerLogin() {
@@ -564,7 +592,7 @@ function aoSelecionarFoto(e) {
   prev.src = URL.createObjectURL(fotoSelecionada);
   prev.style.display = 'block';
   lbl.textContent = fotoSelecionada.name;
-  toast('Nova foto pronta para leitura em milissegundos.');
+  toast('Nova foto pronta para leitura em milissegundos[cite: 33].');
 }
 
 async function processarLeituraRealDael() {
@@ -591,18 +619,35 @@ async function processarLeituraRealDael() {
       return;
     }
     
-    status.textContent = 'Processando leitura IA em milissegundos...';
+    status.textContent = 'Aplicando pré-processamento óptico e IA...';
     
     try {
+      // Pré-processa a imagem para otimizar a leitura dos números no visor
+      const imagemProcessadaURL = await preprocessarImagemParaOCR(fotoSelecionada);
+
       if (!isWorkerReady || !tesseractWorker) {
         tesseractWorker = await Tesseract.createWorker('eng');
-        await tesseractWorker.setParameters({ tessedit_char_whitelist: '0123456789', tessedit_pageseg_mode: '7' });
         isWorkerReady = true;
       }
       
-      const { data: { text, confidence } } = await tesseractWorker.recognize(fotoSelecionada);
-      const nums = text.match(/\d+/g) || [];
+      await tesseractWorker.setParameters({
+        tessedit_char_whitelist: '0123456789',
+        tessedit_pageseg_mode: '6'
+      });
       
+      let res = await tesseractWorker.recognize(imagemProcessadaURL);
+      let text = res.data.text;
+      let confidence = res.data.confidence;
+
+      // Fallback para imagem original se necessário
+      if (!text.match(/\d{3,6}/)) {
+        await tesseractWorker.setParameters({ tessedit_pageseg_mode: '7' });
+        res = await tesseractWorker.recognize(fotoSelecionada);
+        text = res.data.text;
+        confidence = res.data.confidence;
+      }
+
+      const nums = text.match(/\d+/g) || [];
       if (nums.length === 0) {
         status.textContent = 'Aproxime da numeração principal do visor.';
         toast('Nenhum número legível identificado.');
@@ -612,6 +657,10 @@ async function processarLeituraRealDael() {
       
       let candidateStr = nums.reduce((a, b) => a.length >= b.length ? a : b, '');
       leituraAtual = parseInt(candidateStr, 10);
+      
+      if (tipoSelecionado === 'AGUA' && String(leituraAtual).length === 6 && leituraAtual > 100000) {
+        leituraAtual = Math.floor(leituraAtual / 10);
+      }
       
       if (leituraAtual < 1000 && anterior > 10000) {
         leituraAtual = anterior + leituraAtual;
