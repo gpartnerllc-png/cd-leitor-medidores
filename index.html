@@ -196,7 +196,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
     <section class="section active" id="sec-leitura">
       <div class="grid2">
         <div class="card">
-          <div class="card-title">Scanner Dael (Tratamento Óptico Avançado)[cite: 15]</div>
+          <div class="card-title">Scanner Dael (Tratamento Óptico Avançado)</div>
           
           <div class="field">
             <label>Buscar UC / Nome / Nº do Medidor</label>
@@ -239,12 +239,12 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
             <input type="file" id="foto" accept="image/*" capture="environment" onchange="aoSelecionarFoto(event)"/>
             <div style="font-size:30px;color:var(--accent);margin-bottom:8px">📷</div>
             <div class="dz-label" id="dzLabel">Abrir Câmera do Smartphone / Enviar Foto do Visor</div>
-            <div style="color:var(--muted);font-size:11.5px;margin-top:2px">Com pré-processamento óptico em background[cite: 15]</div>
+            <div style="color:var(--muted);font-size:11.5px;margin-top:2px">Com pré-processamento óptico em background</div>
             <img id="dzPreview" class="dz-preview"/>
           </label>
 
           <button class="btn btn-prim btn-full" onclick="processarLeituraRealDael()" id="btnProcessar">Processar Leitura e Calcular Fatura Oficial</button>
-          <div id="status" style="font-size:12px;color:var(--muted);margin-top:12px;text-align:center;font-weight:500">Sistema IA 100% pronto em background[cite: 15]</div>
+          <div id="status" style="font-size:12px;color:var(--muted);margin-top:12px;text-align:center;font-weight:500">Sistema IA 100% pronto em background</div>
         </div>
 
         <div class="card">
@@ -329,7 +329,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
     <!-- INTEGRAÇÕES & API -->
     <section class="section" id="sec-integracoes">
       <div class="card">
-        <div class="card-title">Integrações Oficiais (Banco Inter, Asaas Sandbox & WhatsApp API)[cite: 15]</div>
+        <div class="card-title">Integrações Oficiais (Banco Inter, Asaas Sandbox & WhatsApp API)</div>
         <div style="display:flex;flex-direction:column;gap:12px">
           <div style="display:flex;justify-content:space-between;align-items:center;padding:16px;background:var(--surface2);border-radius:12px"><div><strong>Banco Inter API (PIX & Boletos)</strong><div style="font-size:12px;color:var(--muted)">Geração automatizada de QR Code PIX</div></div><button class="btn btn-ghost btn-sm" onclick="abrirConfigInter()">Configurar API</button></div>
           <div style="display:flex;justify-content:space-between;align-items:center;padding:16px;background:var(--surface2);border-radius:12px"><div><strong>Asaas Gateway de Pagamento & Sandbox Suite</strong><div style="font-size:12px;color:var(--muted)">Tokenização, Pré-Autorização, Bureau, Pix Automático, Webhooks e Notas</div></div><button class="btn btn-ghost btn-sm" onclick="abrirConfigAsaas()">Configurar Asaas</button></div>
@@ -341,7 +341,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
     <!-- CONFIGURAÇÕES & CADASTRO ÚNICO -->
     <section class="section" id="sec-config">
       <div class="card" style="max-width:1050px;width:100%">
-        <div class="card-title">Cadastro Unificado · Unidades, Medidores, UC e CEP ao Vivo[cite: 15]</div>
+        <div class="card-title">Cadastro Unificado · Unidades, Medidores, UC e CEP ao Vivo</div>
         <div class="cfg-grid">
           <div>
             <div class="field"><label>CEP (Automação REST da Concessionária ao Vivo)</label><input id="cfgCep" placeholder="71989-600" onkeyup="if(this.value.replace(/\D/g,'').length>=8) buscarRegiaoPorCep()"/></div>
@@ -367,7 +367,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
         </div>
 
         <div style="margin-top:28px">
-          <div style="font-size:13px;font-weight:700;color:var(--muted);margin-bottom:12px;text-transform:uppercase">Medidores e Unidades Cadastrados[cite: 15]</div>
+          <div style="font-size:13px;font-weight:700;color:var(--muted);margin-bottom:12px;text-transform:uppercase">Medidores e Unidades Cadastrados</div>
           <div class="table-responsive">
             <table class="tbl">
               <thead><tr><th>Unidade</th><th>UC</th><th>Tipo</th><th>Nº Medidor</th><th>Documento</th><th style="text-align:right">Ações</th></tr></thead>
@@ -390,11 +390,11 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
 <div class="modal-bg" id="modalPix">
   <div class="modal">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
-      <strong style="font-family:'Plus Jakarta Sans',sans-serif;font-size:16px">Cobrança PIX Instantânea (Inter / Asaas)[cite: 15]</strong>
+      <strong style="font-family:'Plus Jakarta Sans',sans-serif;font-size:16px">Cobrança PIX Instantânea (Inter / Asaas)</strong>
       <button class="btn btn-ghost btn-sm" onclick="fecharModal('modalPix')">✕</button>
     </div>
     <div class="pix-codigo" id="pixCodigo"></div>
-    <div style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:16px;font-weight:500">Expira em 05:00 minutos[cite: 15]</div>
+    <div style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:16px;font-weight:500">Expira em 05:00 minutos</div>
     <button class="btn btn-prim btn-full" onclick="copiarPix()">Copiar Código PIX</button>
   </div>
 </div>
@@ -410,7 +410,6 @@ let fotoSelecionada = null;
 let faturaAtual = null;
 let tesseractWorker = null;
 let isWorkerReady = false;
-let asaasApiKey = localStorage.getItem('seter_asaas_key') || '$aact_YTU5YTE2M2M2N2I4N2I0N2I0...';
 
 let unidades = JSON.parse(localStorage.getItem('seter_uni')||'[{"nome":"Residência Central","tipo":"AGUA","uc":"UC-00192","numMedidor":"1543","padrao":"analogico","doc":"342.599.988-54","email":"cliente1@email.com","whats":"61988887777","empresaAgua":"caesb","empresaEnergia":"neoenergia-brasilia","tarifaAgua":8.20,"tarifaEnergia":0.827},{"nome":"Condomínio Bella Vista","tipo":"ENERGIA","uc":"UC-99201","numMedidor":"ENR-99201","padrao":"digital","doc":"00.000.000/0001-00","email":"condominio@email.com","whats":"61977776666","empresaAgua":"saneago","empresaEnergia":"equatorial-go","tarifaAgua":8.42,"tarifaEnergia":0.892}]');
 let historico = JSON.parse(localStorage.getItem('seter_hist')||'[{"data":"2026-10-11T16:27:37.000Z","medidor":"1543","tipo":"AGUA","anterior":15964,"leitura":15965,"consumo":1,"total":20.72}]');
@@ -438,7 +437,7 @@ const DIST_AGUA = [
 const COSIP_CIDADE = { 'DF':15.00, 'GO':16.56, 'SP':18.20, 'RJ':19.50, 'PR':14.80, 'MG':16.00, 'BA':15.50, 'SC':14.00 };
 const ADICIONAL_BANDEIRA = { verde: 0.0, amarela: 0.02, verm1: 0.04, verm2: 0.07 };
 
-// PRÉ-CARREGAMENTO DA IA EM BACKGROUND[cite: 15]
+// PRÉ-CARREGAMENTO DA IA EM BACKGROUND
 async function initBackgroundWorker() {
   try {
     tesseractWorker = await Tesseract.createWorker('eng');
@@ -448,13 +447,13 @@ async function initBackgroundWorker() {
     });
     isWorkerReady = true;
     const st = document.getElementById('status');
-    if(st) st.textContent = 'IA Dael 100% Pronta para Leitura Instantânea[cite: 15]';
+    if(st) st.textContent = 'IA Dael 100% Pronta para Leitura Instantânea';
   } catch(e) {
     console.error('Erro ao iniciar worker background', e);
   }
 }
 
-// PRÉ-PROCESSAMENTO ÓPTICO (CONVERSÃO ESCALA DE CINZA E BINARIZAÇÃO CANVAS)[cite: 15]
+// PRÉ-PROCESSAMENTO ÓPTICO (CONVERSÃO ESCALA DE CINZA E BINARIZAÇÃO CANVAS)
 async function preprocessarImagemParaOCR(file) {
   return new Promise((resolve) => {
     const img = new Image();
@@ -605,7 +604,7 @@ function aoSelecionarFoto(e) {
   prev.src = URL.createObjectURL(fotoSelecionada);
   prev.style.display = 'block';
   lbl.textContent = fotoSelecionada.name;
-  toast('Nova foto pronta para leitura em milissegundos[cite: 15].');
+  toast('Nova foto pronta para leitura em milissegundos.');
 }
 
 // FUNÇÃO DE LEITURA COM A TRAVA DE EXATIDÃO ABSOLUTA
@@ -1019,15 +1018,9 @@ function abrirConfigWhats() {
 }
 
 // ----------------------------------------------------
-// INTEGRAÇÃO COMPLETA DA API ASAAS SANDBOX (SUITE COMPLETA)
+// INTEGRAÇÃO COMPLETA DA API ASAAS SANDBOX VIA WORKER PROXY
 // ----------------------------------------------------
 function abrirConfigAsaas() {
-  const key = prompt('Informe a sua API Key do Asaas Sandbox:', asaasApiKey);
-  if (!key) return;
-  asaasApiKey = key;
-  localStorage.setItem('seter_asaas_key', asaasApiKey);
-  toast('API Key do Asaas salva com sucesso!');
-  
   // Menu de testes avançados Asaas Sandbox
   const acao = prompt('Escolha a operação Asaas para testar na Sandbox:\n1 - Tokenizar Cartão\n2 - Configurar Pré-Autorização\n3 - Consultar Credit Bureau\n4 - Negativação / Payment Dunnings\n5 - Autorizar Nota Fiscal\n6 - Gerar QR Code PIX Estático\n7 - Transações Recorrentes PIX\n8 - Autorizações Automáticas PIX\n9 - Configurar Webhooks\n10 - Criar Chave PIX (EVP)\n11 - Consultar Transações Financeiras');
   
@@ -1050,21 +1043,25 @@ async function asaasRequest(endpoint, method = 'GET', bodyData = null) {
       method: method,
       headers: {
         'accept': 'application/json',
-        'content-type': 'application/json',
-        'access_token': asaasApiKey,
-        'User-Agent': 'SeterProDaelEngine/1.0.0'
+        'content-type': 'application/json'
       }
     };
     if (bodyData) options.body = JSON.stringify(bodyData);
     
-    const response = await fetch(`https://api-sandbox.asaas.com/v3${endpoint}`, options);
+    // Requisição roteada com segurança pelo Cloudflare Worker Proxy (evita CORS)
+    const response = await fetch(`/api/asaas${endpoint}`, options);
     const json = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(json.errors?.[0]?.description || json.erro || 'Erro na API Asaas');
+    }
+
     console.log('Asaas Response:', json);
     toast('Requisição Asaas executada com sucesso!');
     return json;
   } catch(e) {
     console.error('Erro Asaas:', e);
-    toast('Erro na comunicação com Asaas Sandbox.');
+    toast('Erro na comunicação com Asaas Sandbox: ' + e.message);
   }
 }
 
