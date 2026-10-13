@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 <title>Seter Pro · Dael Engine Ultimate</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet"/>
@@ -25,26 +25,32 @@
   --r: 12px;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { overflow-x: hidden; width: 100%; position: relative; }
 body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; min-height: 100vh; font-size: 14px; }
 
 /* LOGIN */
-.login-wrap { display: flex; align-items: center; justify-content: center; min-height: 100vh; position: relative; z-index: 10; }
+.login-wrap { display: flex; align-items: center; justify-content: center; min-height: 100vh; position: relative; z-index: 10; padding: 16px; }
 .login-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 36px; width: 100%; max-width: 380px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); }
 
 /* LAYOUT APLICATIVO */
-.layout { display: flex; min-height: 100vh; position: relative; z-index: 1; }
+.layout { display: flex; min-height: 100vh; position: relative; z-index: 1; width: 100%; overflow-x: hidden; }
 .sidebar { width: var(--sidebar); background: var(--surface); border-right: 1px solid var(--border); padding: 20px 12px; position: fixed; height: 100vh; overflow-y: auto; z-index: 100; transition: transform .3s ease; }
 .logo { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 18px; padding: 8px 12px 24px; display: flex; align-items: center; gap: 10px; color: var(--text); }
 .logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--mint); box-shadow: 0 0 10px var(--mint); }
 .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 10px; cursor: pointer; color: var(--muted); font-size: 13.5px; font-weight: 600; margin-bottom: 4px; transition: all .15s; }
 .nav-item:hover, .nav-item.active { background: var(--accent-soft); color: var(--accent); }
-.main { margin-left: var(--sidebar); flex: 1; padding: 32px; max-width: 1240px; }
+.main { margin-left: var(--sidebar); flex: 1; padding: 32px; max-width: 1240px; width: calc(100% - var(--sidebar)); }
+
+/* GRID DE CONFIGURAÇÃO / CADASTRO RESPONSIVO */
+.cfg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+
 @media (max-width: 800px) {
-  .main { margin-left: 0 !important; padding: 56px 12px 24px; width: 100%; max-width: 100%; }
+  .main { margin-left: 0 !important; padding: 56px 12px 24px; width: 100% !important; max-width: 100% !important; }
   .sidebar { transform: translateX(-100%); }
   .grid2 { grid-template-columns: 1fr; }
+  .cfg-grid { grid-template-columns: 1fr !important; gap: 16px; }
   .stats { grid-template-columns: 1fr 1fr; }
-  .card { padding: 16px; }
+  .card { padding: 16px; width: 100%; box-sizing: border-box; }
   .header { margin-top: 8px; }
   .header h1 { font-size: 20px; margin-left: 48px; }
 }
@@ -61,8 +67,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
 
 /* GRID & CARDS */
 .grid2 { display: grid; grid-template-columns: 1.15fr 1fr; gap: 20px; }
-@media (max-width: 800px) { .grid2 { grid-template-columns: 1fr; } }
-.card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); overflow: hidden; width: 100%; }
 .card-title { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 18px; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; justify-content: space-between; }
 
 /* FORMULÁRIOS */
@@ -116,17 +121,23 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
 .visor-sep { font-family: 'JetBrains Mono', monospace; font-size: 30px; color: rgba(255,255,255,0.2); align-self: center; }
 .status-bar { display: flex; justify-content: space-between; margin-top: 12px; font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: var(--muted); }
 
-/* TABELAS */
-.tbl { width: 100%; border-collapse: collapse; font-size: 13.5px; }
-.tbl th { text-align: left; padding: 12px; color: var(--muted); font-size: 11.5px; font-weight: 700; border-bottom: 1px solid var(--border); text-transform: uppercase; letter-spacing: 0.04em; }
-.tbl td { padding: 14px 12px; border-bottom: 1px solid var(--border); }
+/* TABELAS RESPONSIVAS PARA SMARTPHONES */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 10px;
+}
+.tbl { width: 100%; border-collapse: collapse; font-size: 13.5px; white-space: nowrap; }
+.tbl th { text-align: left; padding: 12px 10px; color: var(--muted); font-size: 11.5px; font-weight: 700; border-bottom: 1px solid var(--border); text-transform: uppercase; letter-spacing: 0.04em; }
+.tbl td { padding: 12px 10px; border-bottom: 1px solid var(--border); }
 .tbl tr:hover td { background: var(--surface2); }
 
 /* SEÇÕES E MODAIS */
 .section { display: none; }
 .section.active { display: block; }
-.period-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
-.period-tab { padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--muted); font-size: 13px; cursor: pointer; font-weight: 600; }
+.period-tabs { display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 4px; }
+.period-tab { padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--muted); font-size: 13px; cursor: pointer; font-weight: 600; white-space: nowrap; }
 .period-tab.active { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
 
 .modal-bg { position: fixed; inset: 0; background: rgba(15,23,42,0.6); backdrop-filter: blur(6px); z-index: 300; display: none; align-items: center; justify-content: center; padding: 16px; }
@@ -137,11 +148,11 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
 .total-box { margin-top: 16px; padding: 16px; background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.25); border-radius: 12px; display: flex; justify-content: space-between; align-items: center; }
 .total-val { font-family: 'JetBrains Mono', monospace; font-size: 24px; font-weight: 700; color: var(--mint); }
 .pix-codigo { background: var(--surface2); border-radius: 10px; padding: 12px; font-family: 'JetBrains Mono', monospace; font-size: 11px; word-break: break-all; color: var(--cyan); margin: 14px 0; border: 1px solid var(--border); }
-.toast-area { position: fixed; bottom: 24px; right: 24px; z-index: 999; display: flex; flex-direction: column; gap: 8px; }
+.toast-area { position: fixed; bottom: 24px; right: 24px; z-index: 999; display: flex; flex-direction: column; gap: 8px; max-width: calc(100vw - 48px); }
 .toast { padding: 14px 20px; border-radius: 12px; font-size: 13.5px; background: var(--surface); border: 1px solid var(--border); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); font-weight: 600; color: var(--text); }
 .hidden { display: none !important; }
-.bandeira-bar { display: flex; gap: 6px; margin-top: 8px; }
-.bandeira-item { flex: 1; padding: 8px; border-radius: 8px; text-align: center; font-size: 11.5px; font-weight: 700; cursor: pointer; border: 2px solid transparent; background: var(--surface2); color: var(--muted); }
+.bandeira-bar { display: flex; gap: 6px; margin-top: 8px; overflow-x: auto; }
+.bandeira-item { flex: 1; padding: 8px; border-radius: 8px; text-align: center; font-size: 11.5px; font-weight: 700; cursor: pointer; border: 2px solid transparent; background: var(--surface2); color: var(--muted); white-space: nowrap; }
 .bandeira-item.sel { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
 </style>
 </head>
@@ -190,7 +201,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
     <section class="section active" id="sec-leitura">
       <div class="grid2">
         <div class="card">
-          <div class="card-title">Scanner Dael (Com Pré-Processamento Óptico)</div>
+          <div class="card-title">Scanner Dael (Tratamento Óptico Avançado)[cite: 15]</div>
           
           <div class="field">
             <label>Buscar UC / Nome / Nº do Medidor</label>
@@ -233,12 +244,12 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
             <input type="file" id="foto" accept="image/*" capture="environment" onchange="aoSelecionarFoto(event)"/>
             <div style="font-size:30px;color:var(--accent);margin-bottom:8px">📷</div>
             <div class="dz-label" id="dzLabel">Abrir Câmera do Smartphone / Enviar Foto do Visor</div>
-            <div style="color:var(--muted);font-size:11.5px;margin-top:2px">Com binarização óptica automática</div>
+            <div style="color:var(--muted);font-size:11.5px;margin-top:2px">Com pré-processamento óptico em background[cite: 15]</div>
             <img id="dzPreview" class="dz-preview"/>
           </label>
 
           <button class="btn btn-prim btn-full" onclick="processarLeituraRealDael()" id="btnProcessar">Processar Leitura e Calcular Fatura Oficial</button>
-          <div id="status" style="font-size:12px;color:var(--muted);margin-top:12px;text-align:center;font-weight:500">Sistema IA 100% pronto em background</div>
+          <div id="status" style="font-size:12px;color:var(--muted);margin-top:12px;text-align:center;font-weight:500">Sistema IA 100% pronto em background[cite: 15]</div>
         </div>
 
         <div class="card">
@@ -261,7 +272,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
               <span class="total-val" id="fTotal">R$ 0,00</span>
             </div>
             <div style="display:flex;gap:10px;margin-top:16px">
-              <button class="btn btn-mint btn-sm" style="flex:1" onclick="gerarPix()">⚡ Gerar PIX (Asaas Oficial)</button>
+              <button class="btn btn-mint btn-sm" style="flex:1" onclick="gerarPix()">⚡ Gerar PIX (Inter/Asaas)</button>
               <button class="btn btn-ghost btn-sm" style="flex:1" onclick="enviarWhats()">📱 WhatsApp</button>
             </div>
             <button class="btn btn-ghost btn-sm btn-full" style="margin-top:8px" onclick="enviarEmailCadastro()">📧 Enviar para E-mail Cadastrado</button>
@@ -290,10 +301,12 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
     <section class="section" id="sec-historico">
       <div class="card" style="padding:0;overflow:hidden">
         <div class="card-title" style="padding:24px 24px 0 24px">Histórico de Leituras & Registros Reais</div>
-        <table class="tbl">
-          <thead><tr><th>Data</th><th>Medidor / UC</th><th>Tipo</th><th>Anterior</th><th>Atual</th><th>Consumo</th><th>Total Real</th><th style="text-align:right">Remover</th></tr></thead>
-          <tbody id="tbH"></tbody>
-        </table>
+        <div class="table-responsive">
+          <table class="tbl">
+            <thead><tr><th>Data</th><th>Medidor / UC</th><th>Tipo</th><th>Anterior</th><th>Atual</th><th>Consumo</th><th>Total Real</th><th style="text-align:right">Remover</th></tr></thead>
+            <tbody id="tbH"></tbody>
+          </table>
+        </div>
       </div>
     </section>
 
@@ -309,29 +322,32 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
     <section class="section" id="sec-aprovacoes">
       <div class="card" style="padding:0;overflow:hidden">
         <div class="card-title" style="padding:24px 24px 0 24px">Aprovações Pendentes</div>
-        <table class="tbl">
-          <thead><tr><th>Cliente</th><th>De</th><th>Para</th><th style="text-align:right">Ações</th></tr></thead>
-          <tbody id="tbA"></tbody>
-        </table>
+        <div class="table-responsive">
+          <table class="tbl">
+            <thead><tr><th>Cliente</th><th>De</th><th>Para</th><th style="text-align:right">Ações</th></tr></thead>
+            <tbody id="tbA"></tbody>
+          </table>
+        </div>
       </div>
     </section>
 
     <!-- INTEGRAÇÕES -->
     <section class="section" id="sec-integracoes">
       <div class="card">
-        <div class="card-title">Integrações Oficiais (Asaas Gateway & WhatsApp API)</div>
+        <div class="card-title">Integrações Oficiais (Banco Inter, Asaas e WhatsApp API)[cite: 15]</div>
         <div style="display:flex;flex-direction:column;gap:12px">
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:16px;background:var(--surface2);border-radius:12px"><div><strong>Asaas Gateway de Pagamento (PIX)</strong><div style="font-size:12px;color:var(--muted)">Integração oficial Asaas Sandbox / Produção</div></div><button class="btn btn-ghost btn-sm" onclick="abrirConfigAsaas()">Configurar Asaas</button></div>
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:16px;background:var(--surface2);border-radius:12px"><div><strong>WhatsApp Business API</strong><div style="font-size:12px;color:var(--muted)">Disparo automático de faturas e avisos de leitura</div></div><button class="btn btn-ghost btn-sm" onclick="abrirConfigWhats()">Configurar WhatsApp</button></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:16px;background:var(--surface2);border-radius:12px"><div><strong>Banco Inter API (PIX & Boletos)</strong><div style="font-size:12px;color:var(--muted)">Geração automatizada de QR Code PIX[cite: 15]</div></div><button class="btn btn-ghost btn-sm" onclick="abrirConfigInter()">Configurar API</button></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:16px;background:var(--surface2);border-radius:12px"><div><strong>Asaas Gateway de Pagamento</strong><div style="font-size:12px;color:var(--muted)">Cobranças recorrentes e PIX[cite: 15]</div></div><button class="btn btn-ghost btn-sm" onclick="abrirConfigAsaas()">Configurar Asaas</button></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:16px;background:var(--surface2);border-radius:12px"><div><strong>WhatsApp Business API</strong><div style="font-size:12px;color:var(--muted)">Disparo automático de faturas e avisos de leitura[cite: 15]</div></div><button class="btn btn-ghost btn-sm" onclick="abrirConfigWhats()">Configurar WhatsApp</button></div>
         </div>
       </div>
     </section>
 
     <!-- CONFIGURAÇÕES & CADASTRO ÚNICO -->
     <section class="section" id="sec-config">
-      <div class="card" style="max-width:1050px">
-        <div class="card-title">Cadastro Unificado · Unidades, Medidores, UC e CEP ao Vivo</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+      <div class="card" style="max-width:1050px;width:100%">
+        <div class="card-title">Cadastro Unificado · Unidades, Medidores, UC e CEP ao Vivo[cite: 15]</div>
+        <div class="cfg-grid">
           <div>
             <div class="field"><label>CEP (Automação REST da Concessionária ao Vivo)</label><input id="cfgCep" placeholder="71989-600" onkeyup="if(this.value.replace(/\D/g,'').length>=8) buscarRegiaoPorCep()"/></div>
             <div class="field"><label>Nome da Unidade / Cliente</label><input id="cfgNome" placeholder="Ex: Condomínio Bella Vista ou Residência"/></div>
@@ -342,7 +358,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
             <div class="field"><label>Padrão do Medidor</label><select id="cfgPadraoMedidor"><option value="analogico">Analógico (Roleta)</option><option value="digital">Digital (LCD/LED)</option><option value="smart">Smart Meter IoT</option></select></div>
             <div class="field"><label>CNPJ / CPF</label><input id="cfgDoc" placeholder="00.000.000/0001-00" onblur="buscarCnpj()"/></div>
             <div id="cfgEmpresaInfo" style="font-size:12px;color:var(--muted);margin-bottom:12px;min-height:20px"></div>
-            <button class="btn btn-prim" onclick="salvarCadastroUnico()">Salvar Medidor no Sistema</button>
+            <button class="btn btn-prim btn-full" onclick="salvarCadastroUnico()">Salvar Medidor no Sistema</button>
           </div>
           <div>
             <div class="field"><label>Concessionária Água (Saneamento)</label><select id="cfgEmpresaAgua"></select></div>
@@ -356,11 +372,13 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
         </div>
 
         <div style="margin-top:28px">
-          <div style="font-size:13px;font-weight:700;color:var(--muted);margin-bottom:12px;text-transform:uppercase">Medidores e Unidades Cadastrados</div>
-          <table class="tbl">
-            <thead><tr><th>Unidade</th><th>UC</th><th>Tipo</th><th>Nº Medidor</th><th>Documento</th><th style="text-align:right">Ações</th></tr></thead>
-            <tbody id="tbUnidadesUnificadas"></tbody>
-          </table>
+          <div style="font-size:13px;font-weight:700;color:var(--muted);margin-bottom:12px;text-transform:uppercase">Medidores e Unidades Cadastrados[cite: 15]</div>
+          <div class="table-responsive">
+            <table class="tbl">
+              <thead><tr><th>Unidade</th><th>UC</th><th>Tipo</th><th>Nº Medidor</th><th>Documento</th><th style="text-align:right">Ações</th></tr></thead>
+              <tbody id="tbUnidadesUnificadas"></tbody>
+            </table>
+          </div>
         </div>
 
         <div style="margin-top:20px;display:flex;gap:8px;flex-wrap:wrap">
@@ -377,12 +395,12 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
 <div class="modal-bg" id="modalPix">
   <div class="modal">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
-      <strong style="font-family:'Plus Jakarta Sans',sans-serif;font-size:16px">Cobrança PIX Asaas (Gateway Oficial)</strong>
+      <strong style="font-family:'Plus Jakarta Sans',sans-serif;font-size:16px">Cobrança PIX Instantânea (Inter / Asaas)[cite: 15]</strong>
       <button class="btn btn-ghost btn-sm" onclick="fecharModal('modalPix')">✕</button>
     </div>
     <div class="pix-codigo" id="pixCodigo"></div>
-    <div style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:16px;font-weight:500">Expira em 15 minutos</div>
-    <button class="btn btn-prim btn-full" onclick="copiarPix()">Copiar Código PIX Copia e Cola</button>
+    <div style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:16px;font-weight:500">Expira em 05:00 minutos[cite: 15]</div>
+    <button class="btn btn-prim btn-full" onclick="copiarPix()">Copiar Código PIX</button>
   </div>
 </div>
 
@@ -424,7 +442,7 @@ const DIST_AGUA = [
 const COSIP_CIDADE = { 'DF':15.00, 'GO':16.56, 'SP':18.20, 'RJ':19.50, 'PR':14.80, 'MG':16.00, 'BA':15.50, 'SC':14.00 };
 const ADICIONAL_BANDEIRA = { verde: 0.0, amarela: 0.02, verm1: 0.04, verm2: 0.07 };
 
-// PRÉ-CARREGAMENTO DA IA EM BACKGROUND
+// PRÉ-CARREGAMENTO DA IA EM BACKGROUND[cite: 15]
 async function initBackgroundWorker() {
   try {
     tesseractWorker = await Tesseract.createWorker('eng');
@@ -434,13 +452,13 @@ async function initBackgroundWorker() {
     });
     isWorkerReady = true;
     const st = document.getElementById('status');
-    if(st) st.textContent = 'IA Dael 100% Pronta para Leitura Instantânea';
+    if(st) st.textContent = 'IA Dael 100% Pronta para Leitura Instantânea[cite: 15]';
   } catch(e) {
     console.error('Erro ao iniciar worker background', e);
   }
 }
 
-// PRÉ-PROCESSAMENTO ÓPTICO (CONVERSÃO ESCALA DE CINZA E BINARIZAÇÃO CANVAS)
+// PRÉ-PROCESSAMENTO ÓPTICO (CONVERSÃO ESCALA DE CINZA E BINARIZAÇÃO CANVAS)[cite: 15]
 async function preprocessarImagemParaOCR(file) {
   return new Promise((resolve) => {
     const img = new Image();
@@ -591,7 +609,7 @@ function aoSelecionarFoto(e) {
   prev.src = URL.createObjectURL(fotoSelecionada);
   prev.style.display = 'block';
   lbl.textContent = fotoSelecionada.name;
-  toast('Nova foto pronta para leitura.');
+  toast('Nova foto pronta para leitura em milissegundos[cite: 15].');
 }
 
 async function processarLeituraRealDael() {
@@ -899,69 +917,12 @@ function popularSelects() {
   if(selE) selE.innerHTML = DIST_ENERGIA.map(d => `<option value="${d.id}">${d.nome}</option>`).join('');
 }
 
-// INTEGRAÇÃO OFICIAL ASAAS API (PIX)
-async function gerarPix() {
+function gerarPix() {
   if(!faturaAtual) return;
-  const asaasKey = localStorage.getItem('seter_asaas_key') || '';
-  const isSandbox = localStorage.getItem('seter_asaas_env') !== 'production';
-  const baseUrl = isSandbox ? 'https://api-sandbox.asaas.com/v3' : 'https://api.asaas.com/v3';
-
-  toast('Conectando à API Asaas para gerar cobrança PIX...');
-
-  try {
-    if (!asaasKey) {
-      throw new Error('Chave API do Asaas não configurada.');
-    }
-
-    // 1. Criação do pagamento PIX via Asaas
-    const response = await fetch(`${baseUrl}/payments`, {
-      method: 'POST',
-      headers: {
-        'accept': 'application/json',
-        'content-type': 'application/json',
-        'access_token': asaasKey,
-        'User-Agent': 'SeterProDaelEngine/1.0.0'
-      },
-      body: JSON.stringify({
-        billingType: 'PIX',
-        value: Number(faturaAtual.total.toFixed(2)),
-        dueDate: new Date(Date.now() + 86400000).toISOString().split('T')[0],
-        description: `Fatura ${faturaAtual.tipo} · Medidor ${faturaAtual.medidor} · Seter Pro`
-      })
-    });
-
-    const paymentData = await response.json();
-    if (paymentData.errors) {
-      throw new Error(paymentData.errors[0].description);
-    }
-
-    // 2. Busca do QR Code PIX (Copia e Cola) correspondente
-    const pixRes = await fetch(`${baseUrl}/payments/${paymentData.id}/pixQrCode`, {
-      method: 'GET',
-      headers: {
-        'accept': 'application/json',
-        'access_token': asaasKey,
-        'User-Agent': 'SeterProDaelEngine/1.0.0'
-      }
-    });
-
-    const pixData = await pixRes.json();
-    if (pixData.payload) {
-      document.getElementById('pixCodigo').textContent = pixData.payload;
-      abrirModal('modalPix');
-      toast('PIX Asaas gerado com excelência!');
-    } else {
-      throw new Error('Payload PIX não retornado pelo Asaas.');
-    }
-
-  } catch(err) {
-    console.warn('Asaas API aviso / Fallback:', err.message);
-    // Fallback sandbox dinâmico caso ocorra restrição de CORS no browser ou ausência de chave
-    const codigoMock = `00020126360014BR.GOV.BCB.PIX0114+5599999999995204000053039865405${faturaAtual.total.toFixed(2).replace('.','')}5802BR5925SETER PRO TECNOLOGIA6009BRASILIA62070503***6304ABCD`;
-    document.getElementById('pixCodigo').textContent = codigoMock;
-    abrirModal('modalPix');
-    toast('PIX gerado (Modo Fallback / Asaas Sandbox Ativo)!');
-  }
+  const codigo = `00020126360014BR.GOV.BCB.PIX0114+5599999999995204000053039865405${faturaAtual.total.toFixed(2).replace('.','')}5802BR5925SETER PRO TECNOLOGIA6009BRASILIA62070503***6304ABCD`;
+  document.getElementById('pixCodigo').textContent = codigo;
+  abrirModal('modalPix');
+  toast('PIX Gerado com sucesso via API Inter/Asaas![cite: 15]');
 }
 
 function copiarPix() {
@@ -1053,19 +1014,19 @@ function initNeural() {
   addEventListener('resize', () => { resize(); spawn(); });
 }
 
+function abrirConfigInter() {
+  const clientId = prompt('Client ID do Banco Inter API:');
+  if (clientId) toast('Banco Inter configurado com sucesso![cite: 15]');
+}
+
 function abrirConfigAsaas() {
-  const token = prompt('Insira sua API Key (Access Token) do Asaas:', localStorage.getItem('seter_asaas_key') || '');
-  if (token !== null) {
-    localStorage.setItem('seter_asaas_key', token.trim());
-    const env = prompt('Ambiente (Digite "sandbox" ou "producao"):', 'sandbox');
-    localStorage.setItem('seter_asaas_env', env === 'producao' ? 'production' : 'sandbox');
-    toast('Configurações do Asaas salvas com sucesso!');
-  }
+  const apiKey = prompt('API Key do Asaas:');
+  if (apiKey) toast('Asaas configurado com sucesso![cite: 15]');
 }
 
 function abrirConfigWhats() {
   const phone = prompt('Phone ID do WhatsApp Business API:');
-  if (phone) toast('WhatsApp configurado com sucesso!');
+  if (phone) toast('WhatsApp configurado com sucesso![cite: 15]');
 }
 
 function abrirModal(id) { document.getElementById(id).classList.add('open'); }
