@@ -328,12 +328,29 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
 
     <!-- INTEGRAÇÕES & API -->
     <section class="section" id="sec-integracoes">
-      <div class="card">
-        <div class="card-title">Integrações Oficiais (Banco Inter, Asaas Sandbox & WhatsApp API)</div>
-        <div style="display:flex;flex-direction:column;gap:12px">
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:16px;background:var(--surface2);border-radius:12px"><div><strong>Banco Inter API (PIX & Boletos)</strong><div style="font-size:12px;color:var(--muted)">Geração automatizada de QR Code PIX</div></div><button class="btn btn-ghost btn-sm" onclick="abrirConfigInter()">Configurar API</button></div>
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:16px;background:var(--surface2);border-radius:12px"><div><strong>Asaas Gateway de Pagamento & Sandbox Suite</strong><div style="font-size:12px;color:var(--muted)">Tokenização, Pré-Autorização, Bureau, Pix Automático, Webhooks e Notas</div></div><button class="btn btn-ghost btn-sm" onclick="abrirConfigAsaas()">Configurar Asaas</button></div>
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:16px;background:var(--surface2);border-radius:12px"><div><strong>WhatsApp Business API</strong><div style="font-size:12px;color:var(--muted)">Disparo automático de faturas e avisos de leitura</div></div><button class="btn btn-ghost btn-sm" onclick="abrirConfigWhats()">Configurar WhatsApp</button></div>
+      <div class="card" style="max-width:950px;width:100%">
+        <div class="card-title">Painel Oficial de Integrações & Nuvem (Banco Inter, Asaas & WhatsApp)</div>
+        <div class="cfg-grid">
+          <div class="field">
+            <label>Banco Inter Client ID</label>
+            <input id="interClientId" placeholder="Insira o Client ID do Banco Inter"/>
+          </div>
+          <div class="field">
+            <label>Banco Inter Client Secret</label>
+            <input id="interClientSecret" type="password" placeholder="Insira o Client Secret"/>
+          </div>
+          <div class="field">
+            <label>Asaas Sandbox API Key</label>
+            <input id="asaasApiKeyCfg" placeholder="$aact_..."/>
+          </div>
+          <div class="field">
+            <label>WhatsApp Business Phone ID</label>
+            <input id="whatsPhoneId" placeholder="Ex: 10293848576"/>
+          </div>
+        </div>
+        <div style="margin-top:16px; display:flex; gap:12px; flex-wrap:wrap;">
+          <button class="btn btn-prim" onclick="salvarIntegracoesNuvem()">💾 Salvar Chaves na Nuvem com Segurança</button>
+          <button class="btn btn-mint" onclick="testarTestesAsaasMenu()">⚡ Testar Funções Asaas Sandbox</button>
         </div>
       </div>
     </section>
@@ -453,7 +470,7 @@ async function initBackgroundWorker() {
   }
 }
 
-// PRÉ-PROCESSAMENTO ÓPTICO (CONVERSÃO ESCALA DE CINZA E BINARIZAÇÃO CANVAS)
+// PRÉ-PROCESSAMENTO ÓPTICO
 async function preprocessarImagemParaOCR(file) {
   return new Promise((resolve) => {
     const img = new Image();
@@ -495,7 +512,47 @@ function fazerLogin() {
   document.querySelectorAll('.admin-only').forEach(el => { el.style.display = role === 'admin' ? '' : 'none'; });
   if (window.innerWidth < 800) document.getElementById('btnMenu').style.display = 'block';
   toast('Bem-vindo, ' + u);
-  popularSelects(); renderUnidadesUnificadas(); renderH(); dash(); renderA();
+  popularSelects(); renderUnidadesUnificadas(); renderH(); dash(); renderA(); carregarIntegracoesNuvem();
+}
+
+async function carregarIntegracoesNuvem() {
+  try {
+    const res = await fetch('/api/configuracoes');
+    if(res.ok) {
+      const data = await res.json();
+      if(data.inter_client_id) document.getElementById('interClientId').value = data.inter_client_id;
+      if(data.inter_client_secret) document.getElementById('interClientSecret').value = data.inter_client_secret;
+      if(data.asaas_api_key) document.getElementById('asaasApiKeyCfg').value = data.asaas_api_key;
+      if(data.whatsapp_phone_id) document.getElementById('whatsPhoneId').value = data.whatsapp_phone_id;
+    }
+  } catch(e) {
+    console.error('Erro ao carregar configurações da nuvem', e);
+  }
+}
+
+async function salvarIntegracoesNuvem() {
+  const dados = {
+    inter_client_id: document.getElementById('interClientId')?.value || '',
+    inter_client_secret: document.getElementById('interClientSecret')?.value || '',
+    asaas_api_key: document.getElementById('asaasApiKeyCfg')?.value || '',
+    whatsapp_phone_id: document.getElementById('whatsPhoneId')?.value || ''
+  };
+
+  try {
+    const res = await fetch('/api/configuracoes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(dados)
+    });
+    
+    if(res.ok) {
+      toast('Integrações gravadas com segurança na nuvem (D1)!');
+    } else {
+      toast('Erro ao gravar integrações.');
+    }
+  } catch(e) {
+    toast('Erro de conexão ao salvar na nuvem.');
+  }
 }
 
 function logout() {
@@ -514,6 +571,7 @@ function ir(sec, el) {
   if(sec==='dashboard') dash();
   if(sec==='aprovacoes') renderA();
   if(sec==='config') renderUnidadesUnificadas();
+  if(sec==='integracoes') carregarIntegracoesNuvem();
 }
 
 function toast(msg) {
@@ -674,10 +732,9 @@ async function processarLeituraRealDael() {
     }
   }
 
-  // VALIDAÇÃO DE EXATIDÃO: Impede leitura atual menor que a anterior
   if (leituraAtual < anterior) {
     status.textContent = 'Atenção: Leitura atual menor que a anterior!';
-    toast('Erro de leitura: O valor atual (' + leituraAtual + ') é menor que o anterior (' + anterior + '). Verifique a foto ou digite manualmente.');
+    toast('Erro de leitura: O valor atual (' + leituraAtual + ') é menor que o anterior (' + anterior + ').');
     btn.disabled = false;
     return;
   }
@@ -957,6 +1014,7 @@ window.addEventListener('load', () => {
   renderUnidadesUnificadas();
   initNeural();
   initBackgroundWorker();
+  carregarIntegracoesNuvem();
 });
 
 function initNeural() {
@@ -1007,21 +1065,10 @@ function initNeural() {
   addEventListener('resize', () => { resize(); spawn(); });
 }
 
-function abrirConfigInter() {
-  const clientId = prompt('Client ID do Banco Inter API:');
-  if (clientId) toast('Banco Inter configurado com sucesso!');
-}
-
-function abrirConfigWhats() {
-  const phone = prompt('Phone ID do WhatsApp Business API:');
-  if (phone) toast('WhatsApp configurado com sucesso!');
-}
-
 // ----------------------------------------------------
 // INTEGRAÇÃO COMPLETA DA API ASAAS SANDBOX VIA WORKER PROXY
 // ----------------------------------------------------
-function abrirConfigAsaas() {
-  // Menu de testes avançados Asaas Sandbox
+function testarTestesAsaasMenu() {
   const acao = prompt('Escolha a operação Asaas para testar na Sandbox:\n1 - Tokenizar Cartão\n2 - Configurar Pré-Autorização\n3 - Consultar Credit Bureau\n4 - Negativação / Payment Dunnings\n5 - Autorizar Nota Fiscal\n6 - Gerar QR Code PIX Estático\n7 - Transações Recorrentes PIX\n8 - Autorizações Automáticas PIX\n9 - Configurar Webhooks\n10 - Criar Chave PIX (EVP)\n11 - Consultar Transações Financeiras');
   
   if (acao === '1') asaasTokenizeCard();
@@ -1048,7 +1095,6 @@ async function asaasRequest(endpoint, method = 'GET', bodyData = null) {
     };
     if (bodyData) options.body = JSON.stringify(bodyData);
     
-    // Requisição roteada com segurança pelo Cloudflare Worker Proxy (evita CORS)
     const response = await fetch(`/api/asaas${endpoint}`, options);
     const json = await response.json();
     
@@ -1077,66 +1123,4 @@ async function asaasCreditBureauReport() {
   await asaasRequest('/creditBureauReport', 'POST');
 }
 
-async function asaasPaymentDunnings() {
-  await asaasRequest('/paymentDunnings', 'POST', { type: 'CREDIT_BUREAU' });
-}
-
-async function asaasAuthorizeInvoice() {
-  const invoiceId = prompt('Informe o ID da Fatura / Nota Fiscal para autorizar:');
-  if(!invoiceId) return;
-  await asaasRequest(`/invoices/${invoiceId}/authorize`, 'POST');
-}
-
-async function asaasStaticPixQrCode() {
-  await asaasRequest('/pix/qrCodes/static', 'POST');
-}
-
-async function asaasRecurringPixTransactions() {
-  await asaasRequest('/pix/transactions/recurrings', 'GET');
-}
-
-async function asaasAutomaticPixAuthorizations() {
-  await asaasRequest('/pix/automatic/authorizations', 'POST', { frequency: 'WEEKLY', immediateQrCode: {} });
-}
-
-async function asaasConfigureWebhooks() {
-  await asaasRequest('/webhooks', 'POST', { interrupted: true, enabled: true, events: [], sendType: 'NON_SEQUENTIALLY' });
-}
-
-async function asaasCreateAddressKey() {
-  await asaasRequest('/pix/addressKeys', 'POST', { type: 'EVP' });
-}
-
-async function asaasGetFinancialTransactions() {
-  await asaasRequest('/financialTransactions', 'GET');
-}
-
-function abrirModal(id) { document.getElementById(id).classList.add('open'); }
-function fecharModal(id) { document.getElementById(id).classList.remove('open'); }
-
-function exportarJSON() {
-  const blob = new Blob([JSON.stringify({unidades, historico}, null, 2)], {type: 'application/json'});
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'seter-pro-ultimate-backup.json'; a.click();
-  toast('Backup exportado com sucesso!');
-}
-
-function importarDados(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    try {
-      const d = JSON.parse(ev.target.result);
-      if(d.unidades) unidades = d.unidades;
-      if(d.historico) historico = d.historico;
-      localStorage.setItem('seter_uni', JSON.stringify(unidades));
-      localStorage.setItem('seter_hist', JSON.stringify(historico));
-      renderUnidadesUnificadas(); renderH();
-      toast('Dados importados com sucesso!');
-    } catch(err) { toast('Arquivo inválido'); }
-  };
-  reader.readAsText(file);
-}
-</script>
-</body>
-</html>
+async function asaasPaymentDunnings
