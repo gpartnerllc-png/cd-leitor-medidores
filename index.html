@@ -428,6 +428,9 @@ let faturaAtual = null;
 let tesseractWorker = null;
 let isWorkerReady = false;
 
+// URL EXATA DO SEU WORKER CLOUDFLARE
+const WORKER_BASE_URL = 'https://cd-leitor-medidores.contatodroppfy.workers.dev';
+
 let unidades = JSON.parse(localStorage.getItem('seter_uni')||'[{"nome":"Residência Central","tipo":"AGUA","uc":"UC-00192","numMedidor":"1543","padrao":"analogico","doc":"342.599.988-54","email":"cliente1@email.com","whats":"61988887777","empresaAgua":"caesb","empresaEnergia":"neoenergia-brasilia","tarifaAgua":8.20,"tarifaEnergia":0.827},{"nome":"Condomínio Bella Vista","tipo":"ENERGIA","uc":"UC-99201","numMedidor":"ENR-99201","padrao":"digital","doc":"00.000.000/0001-00","email":"condominio@email.com","whats":"61977776666","empresaAgua":"saneago","empresaEnergia":"equatorial-go","tarifaAgua":8.42,"tarifaEnergia":0.892}]');
 let historico = JSON.parse(localStorage.getItem('seter_hist')||'[{"data":"2026-10-11T16:27:37.000Z","medidor":"1543","tipo":"AGUA","anterior":15964,"leitura":15965,"consumo":1,"total":20.72}]');
 let aprovacoes = JSON.parse(localStorage.getItem('seter_apr')||'[{"cliente":"Condomínio Bella Vista","de":"João Silva","para":"Maria Souza"}]');
@@ -517,7 +520,7 @@ function fazerLogin() {
 
 async function carregarIntegracoesNuvem() {
   try {
-    const res = await fetch('/api/configuracoes');
+    const res = await fetch(`${WORKER_BASE_URL}/api/configuracoes`);
     if(res.ok) {
       const data = await res.json();
       if(data.inter_client_id) document.getElementById('interClientId').value = data.inter_client_id;
@@ -539,7 +542,7 @@ async function salvarIntegracoesNuvem() {
   };
 
   try {
-    const res = await fetch('/api/configuracoes', {
+    const res = await fetch(`${WORKER_BASE_URL}/api/configuracoes`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(dados)
@@ -548,7 +551,8 @@ async function salvarIntegracoesNuvem() {
     if(res.ok) {
       toast('Integrações gravadas com segurança na nuvem (D1)!');
     } else {
-      toast('Erro ao gravar integrações.');
+      const errData = await res.json().catch(() => ({}));
+      toast('Erro ao gravar: ' + (errData.erro || 'Falha no banco D1'));
     }
   } catch(e) {
     toast('Erro de conexão ao salvar na nuvem.');
@@ -1095,7 +1099,13 @@ async function asaasRequest(endpoint, method = 'GET', bodyData = null) {
     };
     if (bodyData) options.body = JSON.stringify(bodyData);
     
-    const response = await fetch(`/api/asaas${endpoint}`, options);
+    const response = await fetch(`${WORKER_BASE_URL}/api/asaas${endpoint}`, options);
+    
+    const contentType = response.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) {
+      throw new Error('O servidor retornou uma página HTML/404 em vez de JSON.');
+    }
+
     const json = await response.json();
     
     if (!response.ok) {
