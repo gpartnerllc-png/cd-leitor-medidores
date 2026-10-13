@@ -1,6 +1,6 @@
 /**
  * worker.js
- * Worker puro (sem Hono) — Seter Pro · Dael Engine + Asaas Proxy Suite
+ * Worker puro (sem Hono) — Seter Pro · Dael Engine + Asaas Proxy Suite + Cloudflare D1 Universal DB
  * Salve este código na raiz do seu repositório Cloudflare Worker.
  */
 
@@ -25,11 +25,13 @@ export default {
       return json({
         status: 'ok',
         servico: 'Seter Pro · Leitura de Medidores & Asaas Gateway Suite',
-        versao: '2.1',
+        versao: '2.2',
         endpoints: [
           '/api/login', 
           '/api/ler-medidor', 
           '/webhook/whatsapp',
+          '/api/unidades',
+          '/api/historico',
           '/api/asaas/*' // Proxy seguro para toda a suíte Asaas Sandbox
         ],
       }, corsHeaders);
@@ -100,6 +102,94 @@ export default {
 
     if (path === '/webhook/whatsapp' && request.method === 'POST') {
       return new Response('OK', { headers: corsHeaders });
+    }
+
+    // =========================================================================
+    // CLOUDFLARE D1 DATABASE: UNIDADES E MEDIDORES (Sincronização Universal)
+    // =========================================================================
+    if (path === '/api/unidades' && request.method === 'GET') {
+      try {
+        if (!env.DB) return json({ erro: 'Banco de dados D1 (DB) não associado no Cloudflare Worker.' }, corsHeaders, 500);
+        const { results } = await env.DB.prepare("SELECT * FROM unidades ORDER BY id DESC").all();
+        return json(results, corsHeaders);
+      } catch (e) {
+        return json({ erro: e.message }, corsHeaders, 500);
+      }
+    }
+
+    if (path === '/api/unidades' && request.method === 'POST') {
+      try {
+        if (!env.DB) return json({ erro: 'Banco de dados D1 (DB) não associado no Cloudflare Worker.' }, corsHeaders, 500);
+        const d = await request.json();
+        await env.DB.prepare(`
+          INSERT INTO unidades (nome, tipo, uc, numMedidor, padrao, doc, email, whats, empresaAgua, empresaEnergia, tarifaAgua, tarifaEnergia, cosip)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).bind(
+          d.nome || '', d.tipo || 'AGUA', d.uc || '', d.numMedidor || '', d.padrao || 'analogico', 
+          d.doc || '', d.email || '', d.whats || '', d.empresaAgua || '', d.empresaEnergia || '', 
+          d.tarifaAgua || 8.42, d.tarifaEnergia || 0.892, d.cosip || 16.56
+        ).run();
+        return json({ sucesso: true }, corsHeaders);
+      } catch (e) {
+        return json({ erro: e.message }, corsHeaders, 500);
+      }
+    }
+
+    if (path.startsWith('/api/unidades/') && request.method === 'DELETE') {
+      try {
+        if (!env.DB) return json({ erro: 'Banco de dados D1 (DB) não associado no Cloudflare Worker.' }, corsHeaders, 500);
+        const id = path.split('/').pop();
+        await env.DB.prepare("DELETE FROM unidades WHERE id = ?").bind(id).run();
+        return json({ sucesso: true }, corsHeaders);
+      } catch (e) {
+        return json({ erro: e.message }, corsHeaders, 500);
+      }
+    }
+
+    // =========================================================================
+    // CLOUDFLARE D1 DATABASE: HISTÓRICO DE LEITURAS (Sincronização Universal)
+    // =========================================================================
+    if (path === '/api/historico' && request.method === 'GET') {
+      try {
+        if (!env.DB) return json({ erro: 'Banco de dados D1 (DB) não associado no Cloudflare Worker.' }, corsHeaders, 500);
+        const { results } = await env.DB.prepare("SELECT * FROM historico ORDER BY id DESC").all();
+        return json(results, corsHeaders);
+      } catch (e) {
+        return json({ erro: e.message }, corsHeaders, 500);
+      }
+    }
+
+    if (path === '/api/historico' && request.method === 'POST') {
+      try {
+        if (!env.DB) return json({ erro: 'Banco de dados D1 (DB) não associado no Cloudflare Worker.' }, corsHeaders, 500);
+        const h = await request.json();
+        await env.DB.prepare(`
+          INSERT INTO historico (data, medidor, tipo, anterior, leitura, consumo, total)
+          VALUES (?, ?, ?, ?, ?, ?, ?)
+        `).bind(
+          h.data || new Date().toISOString(), 
+          h.medidor || '', 
+          h.tipo || 'AGUA', 
+          h.anterior || 0, 
+          h.leitura || 0, 
+          h.consumo || 0, 
+          h.total || 0
+        ).run();
+        return json({ sucesso: true }, corsHeaders);
+      } catch (e) {
+        return json({ erro: e.message }, corsHeaders, 500);
+      }
+    }
+
+    if (path.startsWith('/api/historico/') && request.method === 'DELETE') {
+      try {
+        if (!env.DB) return json({ erro: 'Banco de dados D1 (DB) não associado no Cloudflare Worker.' }, corsHeaders, 500);
+        const id = path.split('/').pop();
+        await env.DB.prepare("DELETE FROM historico WHERE id = ?").bind(id).run();
+        return json({ sucesso: true }, corsHeaders);
+      } catch (e) {
+        return json({ erro: e.message }, corsHeaders, 500);
+      }
     }
 
     // =========================================================================
